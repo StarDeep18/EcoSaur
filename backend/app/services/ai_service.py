@@ -54,6 +54,8 @@ async def suggest_alternative(parsed_data: ParsedFoodData) -> HomemadeAlternativ
             f"{ECOSAUR_PERSONA}\n\n"
             f"Based on a food containing these main ingredients: {ingredients_str}, "
             f"suggest one simple, healthy, regional Indian homemade alternative. "
+            f"If the ingredients are toxic, non-food, or completely unrecognizable as food, "
+            f"suggest a standard healthy meal instead and note that the original product seems unsafe. "
             f"Output ONLY a JSON object with 'name' and 'recipe' (under 4 short steps). "
             f"Format exactly like: {{\"name\": \"Baked Masala Wedges\", \"recipe\": \"1. Cut potatoes. 2. Toss with oil. 3. Bake.\"}}"
         )
@@ -70,8 +72,8 @@ async def suggest_alternative(parsed_data: ParsedFoodData) -> HomemadeAlternativ
     except Exception as e:
         print(f"AI Alternative Error: {e}")
         return HomemadeAlternative(
-            name="Fresh Fruit or Nuts",
-            recipe="Always a safe and healthy alternative to packaged snacks."
+            name="AI Assistant Busy",
+            recipe="Our AI is currently taking a short break (rate limit). Please try again in a few moments for a custom recipe!"
         )
 
 async def chat_with_user(ingredients: List[str], history: List[ChatMessage], message: str) -> str:

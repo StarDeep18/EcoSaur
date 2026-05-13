@@ -9,6 +9,7 @@ REFINED_FLOUR = ["maida", "refined wheat flour", "refined flour", "bleached flou
 PALM_OIL = ["palm oil", "palmolein", "palm kernel oil"]
 PRESERVATIVES = ["benzoate", "sorbate", "propionate", "nitrate", "nitrite", "e200", "e211", "e282", "e250"]
 COLORS = ["tartrazine", "sunset yellow", "red 40", "yellow 5", "brilliant blue", "e102", "e110", "e129", "e133"]
+TOXIC_CHEMICALS = ["methanol", "methynol", "cyanide", "arsenic", "lead", "mercury", "bleach", "ammonia", "formaldehyde", "chlorine", "poison"]
 
 def calculate_score(parsed_data: ParsedFoodData) -> Tuple[int, str, List[ScoreBreakdown]]:
     """
@@ -23,6 +24,11 @@ def calculate_score(parsed_data: ParsedFoodData) -> Tuple[int, str, List[ScoreBr
     ingredients_str = " ".join(ingredients).lower()
     
     # Penalties
+    for toxic in TOXIC_CHEMICALS:
+        if toxic in ingredients_str:
+            score -= 100
+            breakdown.append(ScoreBreakdown(reason=f"Contains dangerously toxic substance ({toxic})", impact=-100))
+
     if any(alias in ingredients_str for alias in TRANS_FATS):
         score -= 25
         breakdown.append(ScoreBreakdown(reason="Contains trans fats / hydrogenated oils", impact=-25))
