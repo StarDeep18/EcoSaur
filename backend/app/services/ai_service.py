@@ -1,10 +1,10 @@
 import json
 from app.models.schemas import ParsedFoodData, HomemadeAlternative, ScoreBreakdown, ChatMessage
-import google.generativeai as genai
+from google import genai
 from app.core.config import settings
 from typing import List
 
-genai.configure(api_key=settings.GEMINI_API_KEY)
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 # STRICT SYSTEM INSTRUCTIONS (No medical advice, no hallucinated scores)
 ECOSAUR_PERSONA = (
@@ -28,7 +28,6 @@ def clean_json_response(text: str) -> str:
 
 async def explain_score(parsed_data: ParsedFoodData, score: int, grade: str, breakdown: List[ScoreBreakdown]) -> str:
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
         breakdown_str = ", ".join([f"{b.reason} ({b.impact})" for b in breakdown])
         
         prompt = (
@@ -38,7 +37,10 @@ async def explain_score(parsed_data: ParsedFoodData, score: int, grade: str, bre
             f"Explain this score in 2 to 3 simple sentences. "
             f"Keep it educational and neutral."
         )
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=prompt,
+        )
         return response.text.strip()
     except Exception as e:
         print(f"AI Explanation Error: {e}")
@@ -46,7 +48,6 @@ async def explain_score(parsed_data: ParsedFoodData, score: int, grade: str, bre
 
 async def suggest_alternative(parsed_data: ParsedFoodData) -> HomemadeAlternative:
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
         ingredients_str = ", ".join(parsed_data.ingredients[:5])
         
         prompt = (
@@ -56,7 +57,10 @@ async def suggest_alternative(parsed_data: ParsedFoodData) -> HomemadeAlternativ
             f"Output ONLY a JSON object with 'name' and 'recipe' (under 4 short steps). "
             f"Format exactly like: {{\"name\": \"Baked Masala Wedges\", \"recipe\": \"1. Cut potatoes. 2. Toss with oil. 3. Bake.\"}}"
         )
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=prompt,
+        )
         json_str = clean_json_response(response.text)
         data = json.loads(json_str)
         return HomemadeAlternative(
@@ -75,19 +79,27 @@ async def chat_with_user(ingredients: List[str], history: List[ChatMessage], mes
     Conversational UX layer.
     """
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        
         # Build the chat context
         ingredients_str = ", ".join(ingredients)
-        context = f"{ECOSAUR_PERSONA}\n\nYou are discussing a food product that contains these ingredients: {ingredients_str}.\n"
         
-        # Format history for Gemini
-        formatted_history = []
-        for msg in history[-4:]: # Keep only last 4 messages to save tokens
-            formatted_history.append({"role": msg.role, "parts": [{"text": msg.content}]})
-            
-        chat = model.start_chat(history=formatted_history)
-        response = chat.send_message(f"Context: {context}\n\nUser: {message}")
+        # Build full conversation as a single prompt with history context
+        history_text = ""
+        for msg in history[-4:]:  # Keep only last 4 messages to save tokens
+            role_label = "User" if msg.role == "user" else "Assistant"
+            history_text += f"{role_label}: {msg.content}\n"
+        
+        prompt = (
+            f"{ECOSAUR_PERSONA}\n\n"
+            f"You are discussing a food product that contains these ingredients: {ingredients_str}.\n\n"
+            f"Conversation so far:\n{history_text}\n"
+            f"User: {message}\n\n"
+            f"Respond helpfully and concisely."
+        )
+        
+        response = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=prompt,
+        )
         
         return response.text.strip()
     except Exception as e:

@@ -1,10 +1,10 @@
 import json
-import google.generativeai as genai
+from google import genai
 from app.models.schemas import ParsedFoodData
 from app.core.config import settings
 import re
 
-genai.configure(api_key=settings.GEMINI_API_KEY)
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 def clean_json_response(text: str) -> str:
     """Removes markdown formatting from LLM JSON response."""
@@ -23,7 +23,6 @@ def parse_text(corrected_text: str) -> ParsedFoodData:
     This does NO scoring or evaluation.
     """
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = (
             "Convert the following food label text into a structured JSON object. "
             "Extract the ingredients into a list of strings. "
@@ -33,7 +32,10 @@ def parse_text(corrected_text: str) -> ParsedFoodData:
             f"Text:\n{corrected_text}"
         )
         
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=prompt,
+        )
         json_str = clean_json_response(response.text)
         data = json.loads(json_str)
         

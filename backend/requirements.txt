@@ -3,6 +3,6 @@ uvicorn
 pydantic
 pydantic-settings
 supabase
-google-generativeai
+google-genai
 python-multipart
 httpx
