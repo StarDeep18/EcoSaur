@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body suppressHydrationWarning>
         <header className="header">
           <Link href="/" className="logo">
             🦕 EcoSaur
