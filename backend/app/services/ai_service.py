@@ -1,10 +1,18 @@
 import json
 from app.models.schemas import ParsedFoodData, HomemadeAlternative, ScoreBreakdown, ChatMessage
 from google import genai
+from google.genai.errors import ClientError
 from app.core.config import settings
 from typing import List
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+# Fallback model chain — if one model is rate-limited, try the next
+FALLBACK_MODELS = [
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-lite',
+    'gemini-1.5-flash',
+]
 
 # STRICT SYSTEM INSTRUCTIONS (No medical advice, no hallucinated scores)
 ECOSAUR_PERSONA = (
@@ -15,6 +23,35 @@ ECOSAUR_PERSONA = (
     "3. Keep answers extremely simple, short, and easy to understand. "
     "4. Do NOT attack brands. Focus on the ingredient chemicals."
 )
+
+def _generate_with_fallback(prompt: str) -> str:
+    """
+    Tries generating content across multiple models.
+    Falls back to the next model if the current one is rate-limited (429).
+    """
+    last_error = None
+    for model in FALLBACK_MODELS:
+        try:
+            print(f"AI: Trying model {model}...")
+            response = client.models.generate_content(
+                model=model,
+                contents=prompt,
+            )
+            print(f"AI: Success with {model}")
+            return response.text.strip()
+        except ClientError as e:
+            last_error = e
+            if e.status_code == 429:
+                print(f"AI: {model} rate-limited (429), trying next model...")
+                continue
+            print(f"AI Error ({model}): {e}")
+            break
+        except Exception as e:
+            last_error = e
+            print(f"AI Error ({model}): {e}")
+            break
+    
+    raise RuntimeError(f"All models failed. Last error: {last_error}")
 
 def clean_json_response(text: str) -> str:
     text = text.strip()
@@ -37,11 +74,7 @@ async def explain_score(parsed_data: ParsedFoodData, score: int, grade: str, bre
             f"Explain this score in 2 to 3 simple sentences. "
             f"Keep it educational and neutral."
         )
-        response = client.models.generate_content(
-            model='gemini-2.0-flash',
-            contents=prompt,
-        )
-        return response.text.strip()
+        return _generate_with_fallback(prompt)
     except Exception as e:
         print(f"AI Explanation Error: {e}")
         return "This product's score is based on its ingredient profile. Please review the score breakdown for details."
@@ -59,11 +92,8 @@ async def suggest_alternative(parsed_data: ParsedFoodData) -> HomemadeAlternativ
             f"Output ONLY a JSON object with 'name' and 'recipe' (under 4 short steps). "
             f"Format exactly like: {{\"name\": \"Baked Masala Wedges\", \"recipe\": \"1. Cut potatoes. 2. Toss with oil. 3. Bake.\"}}"
         )
-        response = client.models.generate_content(
-            model='gemini-2.0-flash',
-            contents=prompt,
-        )
-        json_str = clean_json_response(response.text)
+        result = _generate_with_fallback(prompt)
+        json_str = clean_json_response(result)
         data = json.loads(json_str)
         return HomemadeAlternative(
             name=data.get("name", "Homemade Healthy Snack"),
@@ -98,12 +128,7 @@ async def chat_with_user(ingredients: List[str], history: List[ChatMessage], mes
             f"Respond helpfully and concisely."
         )
         
-        response = client.models.generate_content(
-            model='gemini-2.0-flash',
-            contents=prompt,
-        )
-        
-        return response.text.strip()
+        return _generate_with_fallback(prompt)
     except Exception as e:
         print(f"AI Chat Error: {e}")
         return "Sorry, I'm having trouble connecting right now. Let's try again later."
