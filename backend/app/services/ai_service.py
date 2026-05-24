@@ -9,9 +9,10 @@ client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 # Fallback model chain — if one model is rate-limited, try the next
 FALLBACK_MODELS = [
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite',
     'gemini-2.0-flash',
     'gemini-2.0-flash-lite',
-    'gemini-1.5-flash',
 ]
 
 # STRICT SYSTEM INSTRUCTIONS (No medical advice, no hallucinated scores)
@@ -41,7 +42,7 @@ def _generate_with_fallback(prompt: str) -> str:
             return response.text.strip()
         except ClientError as e:
             last_error = e
-            if e.status_code == 429:
+            if e.code == 429:
                 print(f"AI: {model} rate-limited (429), trying next model...")
                 continue
             print(f"AI Error ({model}): {e}")
