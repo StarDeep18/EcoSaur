@@ -36,7 +36,7 @@ async def analyze_food(request: AnalysisRequest):
     and get AI explanations/alternatives.
     """
     # 1. Parse text deterministically
-    parsed_data = parser.parse_text(request.corrected_text)
+    parsed_data = parser.parse_text(request.corrected_text, request.product_name)
     
     # 2. Rule-based scoring
     score, grade, breakdown = scoring.calculate_score(parsed_data)

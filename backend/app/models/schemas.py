@@ -6,10 +6,12 @@ class ExtractedTextResponse(BaseModel):
 
 class AnalysisRequest(BaseModel):
     corrected_text: str = Field(..., min_length=5, max_length=5000, description="Corrected OCR text must be between 5 and 5000 characters.")
+    product_name: Optional[str] = Field(None, description="Optional name/type of the product, e.g. biscuit, potato chips, etc.")
 
 class ParsedFoodData(BaseModel):
     ingredients: List[str]
     nutrition: Dict[str, str]
+    product_name: Optional[str] = None
 
 class HomemadeAlternative(BaseModel):
     name: str

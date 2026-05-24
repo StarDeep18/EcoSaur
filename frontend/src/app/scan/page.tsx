@@ -13,6 +13,7 @@ export default function ScanFlow() {
   const [step, setStep] = useState<Step>('UPLOAD');
   const [file, setFile] = useState<File | null>(null);
   const [rawText, setRawText] = useState('');
+  const [productName, setProductName] = useState('');
   const [results, setResults] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -81,7 +82,10 @@ export default function ScanFlow() {
       const res = await fetch(`${API_URL}/scan/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ corrected_text: rawText }),
+        body: JSON.stringify({ 
+          corrected_text: rawText,
+          product_name: productName.trim() || undefined
+        }),
       });
       const data = await res.json();
       
@@ -198,12 +202,41 @@ export default function ScanFlow() {
           <h1 className="title">Review OCR</h1>
           <p className="subtitle">Sometimes labels are blurry. Please correct any misspelled ingredients below before we analyze.</p>
           <div className="card">
+            <div style={{ marginBottom: '1.5rem', width: '100%', textAlign: 'left' }}>
+              <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem', color: '#1e293b' }}>
+                Product Name / Category (Optional)
+              </label>
+              <input 
+                type="text" 
+                placeholder="e.g. Biscuit, Potato Chips, Instant Noodles, Cereal..."
+                value={productName}
+                onChange={(e) => setProductName(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.8rem',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '1rem',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                }}
+              />
+              <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginTop: '0.25rem' }}>
+                If left blank, our AI will automatically deduce the category from the ingredients!
+              </span>
+            </div>
+
+            <div style={{ width: '100%', textAlign: 'left', marginBottom: '0.5rem' }}>
+              <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem', color: '#1e293b' }}>
+                Ingredients & Nutrition Text
+              </label>
+            </div>
             <textarea 
               className="textarea" 
               value={rawText} 
               onChange={(e) => setRawText(e.target.value)}
             />
-            <button className="btn-primary" onClick={handleAnalyze}>
+            <button className="btn-primary" onClick={handleAnalyze} style={{ marginTop: '1rem' }}>
               Analyze Food
             </button>
           </div>
@@ -291,6 +324,7 @@ export default function ScanFlow() {
             setStep('UPLOAD');
             setChatHistory([]);
             setResults(null);
+            setProductName('');
           }} style={{ marginBottom: '2rem' }}>
             Scan Another Product
           </button>

@@ -83,21 +83,31 @@ async def explain_score(parsed_data: ParsedFoodData, score: int, grade: str, bre
 async def suggest_alternative(parsed_data: ParsedFoodData) -> HomemadeAlternative:
     try:
         ingredients_str = ", ".join(parsed_data.ingredients[:5])
+        product_name = parsed_data.product_name or "this food item"
         
         prompt = (
             f"{ECOSAUR_PERSONA}\n\n"
-            f"Based on a food containing these main ingredients: {ingredients_str}, "
-            f"suggest one simple, healthy, regional Indian homemade alternative. "
-            f"If the ingredients are toxic, non-food, or completely unrecognizable as food, "
-            f"suggest a standard healthy meal instead and note that the original product seems unsafe. "
-            f"Output ONLY a JSON object with 'name' and 'recipe' (under 4 short steps). "
-            f"Format exactly like: {{\"name\": \"Baked Masala Wedges\", \"recipe\": \"1. Cut potatoes. 2. Toss with oil. 3. Bake.\"}}"
+            f"The user has scanned a food product which is classified as: '{product_name}'. "
+            f"It contains these main ingredients: {ingredients_str}.\n\n"
+            f"CRITICAL REQUIREMENT:\n"
+            f"You MUST suggest a healthy, simple, regional Indian homemade alternative that is of the EXACT SAME food category/type as '{product_name}'.\n\n"
+            f"Strict Category Mapping Examples:\n"
+            f"- If '{product_name}' is a biscuit, cookie, or rusk: suggest a healthy homemade biscuit/cookie (e.g., Whole Wheat Atta Biscuits, Ragi Cookies, Oats Cookies, or Sesame Whole Wheat Rusk).\n"
+            f"- If '{product_name}' is chips, crisps, nachos, or similar snack: suggest healthy homemade chips or dry roasted snacks of that type (e.g., Baked Masala Potato Wedges, Banana Chips, Baked Beetroot Chips, or Roasted Masala Makhana).\n"
+            f"- If '{product_name}' is instant noodles, pasta, or vermicelli: suggest healthy homemade noodles or vermicelli (e.g., Whole Wheat Vegetable Noodles, Ragi Semiya Upma, or Homemade Millet Noodles).\n"
+            f"- If '{product_name}' is chocolate drink, health drink, or milkshake: suggest a homemade beverage alternative (e.g., Homemade Cocoa Milk, Ragi Malt Health Drink, Badam Milk, or Dry Fruit Milkshake).\n"
+            f"- If '{product_name}' is breakfast cereal, granola, or flakes: suggest a healthy breakfast bowl of that type (e.g., Homemade Oats with Honey & Banana, Muesli with Nuts & Seeds, or Roasted Millet Flakes).\n"
+            f"- If '{product_name}' is ketchup, sauce, or spread: suggest a fresh homemade chutney or spread (e.g., Fresh Tomato Date Chutney, Mint Coriander Dip, or Homemade Peanut Butter).\n\n"
+            f"Do NOT suggest a completely unrelated category of food (e.g. do not suggest khichdi, poha, or chana if the original product is a biscuit or potato chips). The alternative must be a direct homemade equivalent of the scanned snack/food type.\n\n"
+            f"If the ingredients are toxic, non-food, or completely unrecognizable, suggest a safe homemade version of that category and note any safety concerns.\n\n"
+            f"Output ONLY a JSON object with 'name' and 'recipe' (under 4 short steps).\n"
+            f"Format exactly like: {{\"name\": \"Homemade Whole Wheat Atta Biscuits\", \"recipe\": \"1. Mix atta with a little ghee and jaggery. 2. Shape into cookies. 3. Bake at 180C for 15 mins. 4. Cool and enjoy.\"}}"
         )
         result = _generate_with_fallback(prompt)
         json_str = clean_json_response(result)
         data = json.loads(json_str)
         return HomemadeAlternative(
-            name=data.get("name", "Homemade Healthy Snack"),
+            name=data.get("name", f"Homemade Healthy {product_name.capitalize()}"),
             recipe=data.get("recipe", "A simple homemade alternative made with fresh ingredients.")
         )
     except Exception as e:
