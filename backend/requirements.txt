@@ -2,7 +2,7 @@ fastapi
 uvicorn
 pydantic
 pydantic-settings
-supabase
+tinydb
 google-genai
 python-multipart
 httpx
