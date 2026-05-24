@@ -1,9 +1,8 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    SUPABASE_URL: str = ""
-    SUPABASE_KEY: str = ""
-    GEMINI_API_KEY: str = ""
+    TINYDB_PATH: str = "ecosaur_db.json"
+    GEMINI_API_KEY: str = "AIzaSyDc9XCvB9qITbSvnTY1Gt2Tq7SJKOwwMZU"
 
     class Config:
         env_file = ".env"

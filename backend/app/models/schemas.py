@@ -37,3 +37,11 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     reply: str
+
+class UserPreferencesRequest(BaseModel):
+    health_mode: str = Field(..., description="User health goal mode, e.g. Weight Loss, Gym/Fitness, Diabetic Friendly, Child Friendly, General")
+
+class UserPreferencesResponse(BaseModel):
+    id: str
+    health_mode: str
+
