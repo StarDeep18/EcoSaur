@@ -45,7 +45,7 @@ export default function ScanFlow() {
       
       while (retryCount <= maxRetries) {
         try {
-          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
           const res = await fetch(`${API_URL}/scan/extract`, {
             method: 'POST',
             body: formData,
@@ -77,7 +77,7 @@ export default function ScanFlow() {
 
     setStep('ANALYZING');
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
       const res = await fetch(`${API_URL}/scan/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -116,7 +116,7 @@ export default function ScanFlow() {
 
     setStep('EXTRACTING');
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
       const res = await fetch(`${API_URL}/scan/barcode/${barcode}`);
       const data = await res.json();
       setRawText(data.raw_text);
@@ -137,7 +137,7 @@ export default function ScanFlow() {
     setIsChatLoading(true);
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
       // In a real app we'd need to extract the raw ingredients list from the results object or have the backend send it down.
       // For this MVP we will just send the whole raw text as context to the chat API.
       // Or we can extract it from results.breakdown if we modify the backend, but backend doesn't send ingredients yet.
