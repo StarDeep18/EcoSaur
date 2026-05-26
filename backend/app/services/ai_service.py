@@ -64,21 +64,21 @@ def clean_json_response(text: str) -> str:
         text = text[:-3]
     return text.strip()
 
-async def explain_score(parsed_data: ParsedFoodData, score: int, grade: str, breakdown: List[ScoreBreakdown]) -> str:
+async def explain_score(parsed_data: ParsedFoodData, score: int, grade: str, breakdown: List[ScoreBreakdown], health_mode: str = "General") -> str:
     try:
         breakdown_str = ", ".join([f"{b.reason} ({b.impact})" for b in breakdown])
         
         prompt = (
             f"{ECOSAUR_PERSONA}\n\n"
-            f"A packaged food product received a deterministic score of {score}/100 (Grade {grade}). "
+            f"A packaged food product received a deterministic score of {score}/100 (Grade {grade}) under the active user health profile: '{health_mode}'. "
             f"The engine cited these reasons: {breakdown_str}. "
-            f"Explain this score in 2 to 3 simple sentences. "
-            f"Keep it educational and neutral."
+            f"Explain this score in 2 to 3 simple, friendly sentences. Specifically discuss how this product impacts the user's '{health_mode}' goal (e.g. why added sugar drops the grade heavily for a diabetic focus, or why high protein is excellent for a fitness focus). "
+            f"Keep it educational, neutral, and practical."
         )
         return _generate_with_fallback(prompt)
     except Exception as e:
         print(f"AI Explanation Error: {e}")
-        return "This product's score is based on its ingredient profile. Please review the score breakdown for details."
+        return f"This product's score is {score}/100 (Grade {grade}) under your {health_mode} preference. Please review the score breakdown for more details."
 
 async def suggest_alternative(parsed_data: ParsedFoodData) -> HomemadeAlternative:
     try:
