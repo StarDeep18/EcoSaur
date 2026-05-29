@@ -64,21 +64,34 @@ def clean_json_response(text: str) -> str:
         text = text[:-3]
     return text.strip()
 
-async def explain_score(parsed_data: ParsedFoodData, score: int, grade: str, breakdown: List[ScoreBreakdown], health_mode: str = "General") -> str:
+from app.models.schemas import ParsedFoodData, HomemadeAlternative, ScoreBreakdown, ChatMessage, NutritionScorecard
+
+async def explain_score(parsed_data: ParsedFoodData, scorecard: NutritionScorecard, breakdown: List[ScoreBreakdown], health_mode: str = "General") -> str:
     try:
-        breakdown_str = ", ".join([f"{b.reason} ({b.impact})" for b in breakdown])
+        breakdown_str = ", ".join([f"{b.reason}" for b in breakdown])
+        scorecard_str = (
+            f"NOVA Processing Group: {scorecard.nova_group}, "
+            f"Additive Density: {scorecard.additive_density}, "
+            f"Sugar Load: {scorecard.sugar_load}, "
+            f"Sodium Load: {scorecard.sodium_load}, "
+            f"Transparency: {scorecard.transparency_index}"
+        )
         
         prompt = (
             f"{ECOSAUR_PERSONA}\n\n"
-            f"A packaged food product received a deterministic score of {score}/100 (Grade {grade}) under the active user health profile: '{health_mode}'. "
-            f"The engine cited these reasons: {breakdown_str}. "
-            f"Explain this score in 2 to 3 simple, friendly sentences. Specifically discuss how this product impacts the user's '{health_mode}' goal (e.g. why added sugar drops the grade heavily for a diabetic focus, or why high protein is excellent for a fitness focus). "
-            f"Keep it educational, neutral, and practical."
+            f"A packaged food product has been analyzed under the user profile focus '{health_mode}'.\n"
+            f"Its Nutritional Scorecard: {scorecard_str}.\n"
+            f"The analysis highlights: {breakdown_str}.\n\n"
+            f"CRITICAL REQUIREMENT:\n"
+            f"Explain these metrics in 2 to 3 simple, supportive, and balanced sentences. "
+            f"Do NOT use fear-based or alarmist words (avoid: 'harmful', 'toxic', 'dangerous', 'avoid completely'). "
+            f"Instead, use calm, evidence-aware, and uncertainty-conscious phrasing (e.g. 'moderation is commonly recommended', 'WHO daily guidelines suggest limiting added simple sweeteners'). "
+            f"Keep it educational, neutral, scientific, and constructive."
         )
         return _generate_with_fallback(prompt)
     except Exception as e:
         print(f"AI Explanation Error: {e}")
-        return f"This product's score is {score}/100 (Grade {grade}) under your {health_mode} preference. Please review the score breakdown for more details."
+        return f"This product represents a processed culinary option. Moderation is standardly recommended under a {health_mode} diet. Please review the detailed parameters card."
 
 async def suggest_alternative(parsed_data: ParsedFoodData) -> HomemadeAlternative:
     try:
