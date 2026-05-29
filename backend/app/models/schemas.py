@@ -30,7 +30,7 @@ class HomemadeAlternative(BaseModel):
     name: str
     recipe: str
     prep_time_mins: Optional[int] = 15
-    approx_cost_inr: Optional[int] = 50
+    approx_cost_inr: Optional[int] = 40
 
 class ScoreBreakdown(BaseModel):
     reason: str
@@ -46,19 +46,25 @@ class IngredientDetail(BaseModel):
     safety_notes: Optional[str] = None
     child_suitability: bool
     diabetic_suitability: bool
-    gym_suitability: bool
     is_additive: bool
     is_preservative: bool
     is_controversial: bool
 
+class NutritionScorecard(BaseModel):
+    nova_group: int = Field(..., ge=1, le=4, description="NOVA processing group (1=Unprocessed, 4=Ultra-Processed)")
+    additive_density: str = Field(..., description="Density of additives: Low, Medium, High")
+    sugar_load: str = Field(..., description="Sugar content evaluation: Low, Moderate, High")
+    sodium_load: str = Field(..., description="Sodium content evaluation: Low, Moderate, High")
+    transparency_index: str = Field(..., description="Clarity and readability index: High, Moderate, Low")
+    protein_quality: str = Field(..., description="Source quality of dietary protein: Standard, High Source")
+    fiber_quality: str = Field(..., description="Source quality of dietary fiber: Standard, High Source")
+
 class PersonalizedAdjustment(BaseModel):
     active_mode: str
-    score_impact: int
     reason: str
 
 class AnalysisResponse(BaseModel):
-    score: int
-    grade: str
+    scorecard: NutritionScorecard
     explanation: str
     alternative: HomemadeAlternative
     breakdown: List[ScoreBreakdown]
@@ -92,13 +98,7 @@ class ProductComparisonRequest(BaseModel):
 
 class ProductComparisonCard(BaseModel):
     product_name: str
-    score: int
-    grade: str
-    processing_level: str
-    additive_density: str
-    sugar_level: str
-    protein_quality: str
-    transparency_index: str
+    scorecard: NutritionScorecard
     key_negatives: List[str]
     key_positives: List[str]
     healthy_alternative: str
@@ -106,5 +106,6 @@ class ProductComparisonCard(BaseModel):
 class ProductComparisonResponse(BaseModel):
     comparison_cards: List[ProductComparisonCard]
     verdict: str
+
 
 

@@ -48,26 +48,27 @@ async def analyze_food(request: AnalysisRequest):
     # 1. Parse text deterministically
     parsed_data = parser.parse_text(request.corrected_text, request.product_name)
     
-    # 2. Upgraded Rule-based scoring with personalization
-    score, grade, breakdown, adjustment, ingredient_details = scoring.calculate_score(parsed_data, health_mode=health_mode)
+    # 2. Upgraded Rule-based scoring with personalization (scorecard based)
+    scorecard, breakdown, adjustment, ingredient_details = scoring.calculate_score(parsed_data, health_mode=health_mode)
     
     # 3. AI Explanation & Alternative (Only if required/async)
-    explanation = await ai_service.explain_score(parsed_data, score, grade, breakdown, health_mode=health_mode)
+    explanation = await ai_service.explain_score(parsed_data, scorecard, breakdown, health_mode=health_mode)
     alternative = await ai_service.suggest_alternative(parsed_data)
     
-    # 4. Save to local TinyDB NoSQL database
+    # 4. Save to local TinyDB NoSQL database (serialize scorecard)
     try:
         alternative_dict = {
             "name": alternative.name, 
             "recipe": alternative.recipe,
             "prep_time_mins": alternative.prep_time_mins or 15,
-            "approx_cost_inr": alternative.approx_cost_inr or 50
+            "approx_cost_inr": alternative.approx_cost_inr or 40
         }
         breakdown_list = [{"reason": item.reason, "impact": item.impact} for item in breakdown]
+        scorecard_dict = scorecard.model_dump()
         tinydb_client.save_scan(
             corrected_text=request.corrected_text,
-            score=score,
-            grade=grade,
+            score=int(100 - (scorecard.nova_group * 10) - (15 if scorecard.sugar_load == "High" else 0)), # Backward compatible raw score index
+            grade=f"NOVA {scorecard.nova_group}",
             explanation=explanation,
             alternative=alternative_dict,
             breakdown=breakdown_list,
@@ -77,8 +78,7 @@ async def analyze_food(request: AnalysisRequest):
         print(f"Warning: Failed to save scan to local database: {e}")
     
     return AnalysisResponse(
-        score=score,
-        grade=grade,
+        scorecard=scorecard,
         explanation=explanation,
         alternative=alternative,
         breakdown=breakdown,
@@ -112,20 +112,7 @@ async def compare_products(request: ProductComparisonRequest):
         corr_text = request.corrected_texts[idx]
         # Parse & score
         parsed = parser.parse_text(corr_text, name)
-        score, grade, breakdown, adjustment, details = scoring.calculate_score(parsed, health_mode=health_mode)
-        
-        # Calculate visual parameters for comparison
-        nova_4_count = sum(1 for d in details if d.processing_level == 4)
-        processing_desc = "Ultra-Processed (NOVA 4)" if nova_4_count > 1 else ("Processed (NOVA 3)" if len(parsed.ingredients) > 10 else "Minimally Processed")
-        
-        additive_count = sum(1 for d in details if d.is_additive)
-        additive_desc = "High" if additive_count > 3 else ("Medium" if additive_count > 1 else "Low")
-        
-        sugar_count = sum(1 for d in details if d.category == "Sweetener")
-        sugar_desc = "High Sugar" if sugar_count > 1 else ("Moderate" if sugar_count == 1 else "Low Sugar")
-        
-        protein_desc = "High Quality" if any("protein" in b.reason.lower() for b in breakdown) else "Standard"
-        transparency_desc = "High" if len(parsed.ingredients) <= 10 else "Low (Long chemical list)"
+        scorecard, breakdown, adjustment, details = scoring.calculate_score(parsed, health_mode=health_mode)
         
         negatives = [b.reason for b in breakdown if b.impact < 0][:3]
         positives = [b.reason for b in breakdown if b.impact > 0][:3]
@@ -141,26 +128,21 @@ async def compare_products(request: ProductComparisonRequest):
             
         cards.append(ProductComparisonCard(
             product_name=name,
-            score=score,
-            grade=grade,
-            processing_level=processing_desc,
-            additive_density=additive_desc,
-            sugar_level=sugar_desc,
-            protein_quality=protein_desc,
-            transparency_index=transparency_desc,
-            key_negatives=negatives if negatives else ["No major negative ingredients detected"],
-            key_positives=positives if positives else ["Standard food profile"],
+            scorecard=scorecard,
+            key_negatives=negatives if negatives else ["No major concerns detected"],
+            key_positives=positives if positives else ["Standard snack profile"],
             healthy_alternative=alternative_name
         ))
         
-    # Generate side-by-side verdict
+    # Generate side-by-side verdict (evidence-aware and non-alarmist)
     card_a, card_b = cards[0], cards[1]
-    if card_a.score > card_b.score:
-        verdict = f"Recommendation: Choose '{card_a.product_name}' (Grade {card_a.grade}, Score {card_a.score}/100) over '{card_b.product_name}' (Grade {card_b.grade}, Score {card_b.score}/100). '{card_b.product_name}' contains more processed ingredients: {', '.join(card_b.key_negatives[:2])}. Swapping to '{card_a.product_name}' improves nutrition and reduces toxic additive intake."
-    elif card_b.score > card_a.score:
-        verdict = f"Recommendation: Choose '{card_b.product_name}' (Grade {card_b.grade}, Score {card_b.score}/100) over '{card_a.product_name}' (Grade {card_a.grade}, Score {card_a.score}/100). '{card_a.product_name}' has higher negative factors: {', '.join(card_a.key_negatives[:2])}. Swapping to '{card_b.product_name}' is a healthier everyday choice."
+    
+    if card_a.scorecard.nova_group < card_b.scorecard.nova_group:
+        verdict = f"Nutritional Review: '{card_a.product_name}' has a lower processing group (NOVA {card_a.scorecard.nova_group}) compared to '{card_b.product_name}' (NOVA {card_b.scorecard.nova_group}). Moderation is commonly recommended for items containing high added sweeteners or chemical thickeners. Option '{card_a.product_name}' represents a more traditional culinary option."
+    elif card_b.scorecard.nova_group < card_a.scorecard.nova_group:
+        verdict = f"Nutritional Review: '{card_b.product_name}' has a lower processing group (NOVA {card_b.scorecard.nova_group}) compared to '{card_a.product_name}' (NOVA {card_a.scorecard.nova_group}). Portions should be monitored for processed items. Swapping to '{card_b.product_name}' aligns closer with standard daily energy guidelines."
     else:
-        verdict = f"Both '{card_a.product_name}' and '{card_b.product_name}' score equally ({card_a.score}/100, Grade {card_a.grade}). Choose based on personal calorie/taste preferences, or opt for a direct homemade alternative like {card_a.healthy_alternative}."
+        verdict = f"Both '{card_a.product_name}' and '{card_b.product_name}' represent similar processing levels (NOVA {card_a.scorecard.nova_group}). Consumers are advised to verify portion sizes and consider direct whole grain culinary swaps like {card_a.healthy_alternative}."
         
     return ProductComparisonResponse(comparison_cards=cards, verdict=verdict)
 
