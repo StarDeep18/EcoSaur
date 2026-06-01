@@ -45,7 +45,7 @@ Most food apps scare you. EcoSaur **educates** you.
 - **⚡ Spellcheck Loop** - Captures manual spelling correction edits, logging them to improve OCR mapping dynamically
 - **⚙️ Deterministic Scoring Engine** - Multi-dimensional, reproducible health scores (0–100)
 - **🛡️ Confidence & Trust System** - Displays OCR confidence and dictionary matching rates on results cards for absolute transparency
-- **📊 Score Breakdown** — Transparent table showing exactly why each point was added or deducted
+- **📊 Score Breakdown** - Transparent table showing exactly why each point was added or deducted
 - **💬 Balanced AI Explanations** - EcoSaur AI explains scores using calm, evidence-aware, non-alarmist scientific language
 - **🍲 Recommendation Reasoning** - Explainable matching system explaining flavor similarity, texture matching, convenience prep times, and processing reductions (NOVA 4 -> Group 1 or 2)
 - **🔄 swipable Alternatives** - Traditional regional Indian recipes suited to the exact snack category (e.g. makhana, chaas, semiya)
@@ -324,7 +324,7 @@ EcoSaur/
 
 ## Roadmap
 
-### ✅ Phase 1 & 2 — Premium High-Trust Release (Completed)
+### ✅ Phase 1 & 2 - Premium High-Trust Release (Completed)
 - [x] Multimodal AI Vision OCR with device-level preprocessing
 - [x] Editable OCR correction layer & manual spellcheck feedback logs
 - [x] Deterministic rule-based scoring engine & transparent breakdown
@@ -335,7 +335,7 @@ EcoSaur/
 - [x] Admin crowdsourcing queues & contributor verification actions
 - [x] Supabase/TinyDB systems fully migrated to highly operational SQLite ORM structures under WAL mode
 
-### 🔲 Phase 3 — Community & Mobile Releases
+### 🔲 Phase 3 - Community & Mobile Releases
 - [ ] PWA installation support for iOS & Android
 - [ ] User authentication (OAuth integration)
 - [ ] smart comparison charts across commercial snack brands
