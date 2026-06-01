@@ -582,7 +582,7 @@ export default function ScanFlow() {
             )}
 
             <div style={{ marginBottom: '1.25rem', width: '100%', textAlign: 'left' }}>
-              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem', color: 'var(--primary)' }}>
+              <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem', color: 'var(--primary)' }}>
                 Product Name / Brand
               </label>
               <input 
@@ -594,9 +594,9 @@ export default function ScanFlow() {
                   width: '100%',
                   padding: '0.9rem 1.1rem',
                   borderRadius: '14px',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  border: '1px solid var(--input-border)',
                   fontSize: '0.95rem',
-                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                  backgroundColor: 'var(--input-bg)',
                   color: 'var(--text-main)',
                 }}
               />
@@ -604,13 +604,13 @@ export default function ScanFlow() {
 
             {/* Smart Inline Highlights correction */}
             <div style={{ width: '100%', textAlign: 'left', marginBottom: '0.75rem' }}>
-              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)' }}>
+              <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)' }}>
                 Tap-to-Correct Highlights (Click words in amber)
               </label>
               
               <div style={{ 
-                background: 'rgba(0, 0, 0, 0.2)', 
-                border: '1px solid rgba(255, 255, 255, 0.05)',
+                background: 'var(--input-bg)', 
+                border: '1px solid var(--input-border)',
                 borderRadius: '14px', 
                 padding: '0.85rem',
                 minHeight: '80px',
@@ -740,10 +740,10 @@ export default function ScanFlow() {
                   🛡️ Trust Indicators:
                 </div>
                 <div style={{ display: 'flex', gap: '1.2rem', fontWeight: 600 }}>
-                  <span style={{ color: results.confidence.ocr_level === 'High' ? '#10b981' : '#facc15' }}>
+                  <span style={{ color: results.confidence.ocr_level === 'High' ? 'var(--theme-success)' : 'var(--theme-warning)' }}>
                     OCR Quality: {results.confidence.ocr_score}% ({results.confidence.ocr_level})
                   </span>
-                  <span style={{ color: results.confidence.match_level === 'High' ? '#10b981' : '#facc15' }}>
+                  <span style={{ color: results.confidence.match_level === 'High' ? 'var(--theme-success)' : 'var(--theme-warning)' }}>
                     Ingredients Recognized: {results.confidence.match_score}%
                   </span>
                 </div>
@@ -776,17 +776,7 @@ export default function ScanFlow() {
               </p>
               
               {results.personalized_adjustments && (
-                <div style={{ 
-                  marginTop: '1.25rem', 
-                  padding: '0.85rem 1rem', 
-                  borderRadius: '14px', 
-                  background: 'rgba(239, 68, 68, 0.08)', 
-                  border: '1px solid rgba(239, 68, 68, 0.2)', 
-                  color: '#fca5a5', 
-                  textAlign: 'left',
-                  fontSize: '0.85rem',
-                  lineHeight: 1.5
-                }}>
+                <div className="personalized-alert-box">
                   ⚠️ <strong>{results.personalized_adjustments.active_mode} Mode Adjustment:</strong> {results.personalized_adjustments.reason}
                 </div>
               )}
@@ -911,9 +901,9 @@ export default function ScanFlow() {
             
             <div className="comparison-scroll" style={{ paddingLeft: '0.25rem', paddingRight: '0.25rem', marginBottom: '1.25rem' }}>
               {/* CURRENT SCAN PRODUCT */}
-              <div className="comparison-card-v" style={{ border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.02)' }}>
+              <div className="comparison-card-v comp-scanned-card">
                 <div className="comparison-header">
-                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fca5a5' }}>Scanned Item</h4>
+                  <h4 className="comp-scanned-header" style={{ fontSize: '0.95rem' }}>Scanned Item</h4>
                   <span className="comparison-grade c-grade-F">{gradeLetter}</span>
                 </div>
                 <div style={{ marginBottom: '1.25rem' }}>
@@ -995,11 +985,10 @@ export default function ScanFlow() {
                 </div>
               </div>
 
-              {/* COMMERCIAL SWAPPING OPTIONS */}
               {results.comparisons && results.comparisons.map((cCard: any, cIdx: number) => (
-                <div key={cIdx} className="comparison-card-v" style={{ border: '1px solid rgba(16, 185, 129, 0.2)', background: 'rgba(16, 185, 129, 0.02)' }}>
+                <div key={cIdx} className="comparison-card-v comp-swapping-card">
                   <div className="comparison-header">
-                    <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#6ee7b7' }}>Swapping Option</h4>
+                    <h4 className="comp-swapping-header" style={{ fontSize: '0.95rem' }}>Swapping Option</h4>
                     <span className={`comparison-grade c-grade-${cCard.grade}`}>{cCard.grade}</span>
                   </div>
                   <div style={{ marginBottom: '1.25rem' }}>
