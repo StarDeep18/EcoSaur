@@ -29,7 +29,22 @@ SEED_CATEGORIES = [
     # Instant Foods
     {"category": "Instant Foods", "subcategory": "Instant Noodles", "snack_type": "Soft", "flavor_profile": "Salty & Spicy", "texture_profile": "Slurpy", "craving_profile": "Savory", "convenience_profile": 5, "processing_level": 4},
     {"category": "Instant Foods", "subcategory": "Soup Mixes", "snack_type": "Soft", "flavor_profile": "Savory", "texture_profile": "Liquid", "craving_profile": "Savory", "convenience_profile": 5, "processing_level": 4},
-    {"category": "Instant Foods", "subcategory": "Pasta", "snack_type": "Soft", "flavor_profile": "Savory", "texture_profile": "Soft", "craving_profile": "Savory", "convenience_profile": 5, "processing_level": 4}
+    {"category": "Instant Foods", "subcategory": "Pasta", "snack_type": "Soft", "flavor_profile": "Savory", "texture_profile": "Soft", "craving_profile": "Savory", "convenience_profile": 5, "processing_level": 4},
+
+    # Bakery
+    {"category": "Bakery", "subcategory": "Bread", "snack_type": "Soft", "beverage_type": "None", "flavor_profile": "Savory", "texture_profile": "Soft", "craving_profile": "Warm", "convenience_profile": 5, "processing_level": 3},
+    {"category": "Bakery", "subcategory": "Cakes & Pastries", "snack_type": "Soft", "beverage_type": "None", "flavor_profile": "Sweet", "texture_profile": "Soft", "craving_profile": "Sweet", "convenience_profile": 4, "processing_level": 4},
+    {"category": "Bakery", "subcategory": "Rusk & Crackers", "snack_type": "Crunchy", "beverage_type": "None", "flavor_profile": "Savory", "texture_profile": "Crunchy", "craving_profile": "Salty", "convenience_profile": 5, "processing_level": 4},
+
+    # Dairy
+    {"category": "Dairy", "subcategory": "Yogurt", "snack_type": "Soft", "beverage_type": "None", "flavor_profile": "Sweet & Sour", "texture_profile": "Creamy", "craving_profile": "Creamy", "convenience_profile": 5, "processing_level": 2},
+    {"category": "Dairy", "subcategory": "Cheese", "snack_type": "Soft", "beverage_type": "None", "flavor_profile": "Savory", "texture_profile": "Soft", "craving_profile": "Creamy", "convenience_profile": 4, "processing_level": 3},
+    {"category": "Dairy", "subcategory": "Butter & Spreads", "snack_type": "Soft", "beverage_type": "None", "flavor_profile": "Savory", "texture_profile": "Creamy", "craving_profile": "Creamy", "convenience_profile": 5, "processing_level": 3},
+
+    # Condiments
+    {"category": "Condiments", "subcategory": "Sauces & Ketchup", "snack_type": "Soft", "beverage_type": "None", "flavor_profile": "Tangy", "texture_profile": "Liquid", "craving_profile": "Tangy", "convenience_profile": 5, "processing_level": 4},
+    {"category": "Condiments", "subcategory": "Jams & Spreads", "snack_type": "Soft", "beverage_type": "None", "flavor_profile": "Sweet", "texture_profile": "Sticky", "craving_profile": "Sweet", "convenience_profile": 5, "processing_level": 4},
+    {"category": "Condiments", "subcategory": "Salad Dressings", "snack_type": "Soft", "beverage_type": "None", "flavor_profile": "Sour & Sweet", "texture_profile": "Liquid", "craving_profile": "Tangy", "convenience_profile": 5, "processing_level": 4}
 ]
 
 # Curated seed alternatives
@@ -110,50 +125,124 @@ SEED_ALTERNATIVES = [
         "prep_time_mins": 12,
         "approx_cost_inr": 15,
         "recipe": "1. Dry roast vermicelli (semiya) until golden brown.\n2. Heat oil, temper with mustard seeds, chana dal, curry leaves, and ginger.\n3. Sauté mixed green vegetables with turmeric.\n4. Add water, bring to boil, add semiya, cover and cook on low heat until dry."
-    }
+    },
+    {
+        "name": "Homemade Jowar & Bajra Bhakri",
+        "subcategory_name": "Bread",
+        "prep_time_mins": 10,
+        "approx_cost_inr": 8,
+        "recipe": "1. Knead fresh jowar or bajra millet flour with warm water into a soft dough.\n2. Flatten into a round disc on a wet cloth or lightly dusted board.\n3. Transfer to a hot clay tawa and roast both sides, applying a splash of water on top.\n4. Serve hot with a dab of A2 ghee for a high-fiber, gluten-free traditional bread."
+    },
+    {
+        "name": "Ragi Banana Jaggery Muffins",
+        "subcategory_name": "Cakes & Pastries",
+        "prep_time_mins": 30,
+        "approx_cost_inr": 20,
+        "recipe": "1. Mash 2 ripe bananas and mix with 1/4 cup cold-pressed oil and 1/2 cup jaggery powder.\n2. Fold in 1 cup ragi (finger millet) flour, a pinch of baking powder, and a dash of cardamom.\n3. Pour into greased muffin cups and bake at 180°C for 20-22 minutes.\n4. Enjoy a nutrient-dense, calcium-rich, and iron-packed dessert."
+    },
+    {
+        "name": "Roasted Baked Oats Khakhra",
+        "subcategory_name": "Rusk & Crackers",
+        "prep_time_mins": 15,
+        "approx_cost_inr": 12,
+        "recipe": "1. Mix whole wheat atta, coarse oats flour, dry fenugreek leaves (kasuri methi), and black salt.\n2. Knead with minimal water and roll paper-thin.\n3. Roast on a low-flame tawa, pressing continuously with a wooden press until perfectly crisp.\n4. Ideal tea-time crunchy cracker without palm oils or synthetic rising agents."
+    },
+    {
+        "name": "Sweet Cardamom Shrikhand",
+        "subcategory_name": "Yogurt",
+        "prep_time_mins": 5,
+        "approx_cost_inr": 25,
+        "recipe": "1. Tie fresh organic curd in a muslin cloth and hang for 4 hours to drain whey (making chakka).\n2. Whisk the thick hung curd with organic honey or raw jaggery powder.\n3. Add active saffron strands dissolved in warm milk, ground green cardamom, and pistachio slivers.\n4. Chill and enjoy as a probiotic, high-protein dessert."
+    },
+    {
+        "name": "Homemade Fresh Lemon Paneer",
+        "subcategory_name": "Cheese",
+        "prep_time_mins": 15,
+        "approx_cost_inr": 45,
+        "recipe": "1. Bring 1 liter of fresh grass-fed whole milk to a rolling boil.\n2. Gradually stir in 2 tablespoons of fresh lemon juice until the whey separates completely.\n3. Strain the curds immediately through a clean cheesecloth and rinse with cold water.\n4. Press under a heavy weight for 15 minutes, slice, and enjoy fresh with a dash of black pepper."
+    },
+    {
+        "name": "Traditional Hand-Churned Makhan",
+        "subcategory_name": "Butter & Spreads",
+        "prep_time_mins": 10,
+        "approx_cost_inr": 30,
+        "recipe": "1. Collect fresh milk malai (cream) in a container over a week and ferment with a spoon of curd.\n2. Add ice-cold water and churn using a traditional wooden madhani (whisk) until butter floats.\n3. Separate the butterballs, washing them in cold water to remove residual buttermilk.\n4. Lightly salt with rock salt for fresh, preservative-free yellow butter."
+    },
+    {
+        "name": "Mint Coriander Dhaniya Chutney",
+        "subcategory_name": "Sauces & Ketchup",
+        "prep_time_mins": 5,
+        "approx_cost_inr": 10,
+        "recipe": "1. Blend fresh coriander leaves, mint leaves, green chilies, and a small slice of ginger.\n2. Add lemon juice, black salt, a pinch of roasted cumin powder, and a splash of water.\n3. Serve fresh as a gut-healthy, iron-rich, tangy dipping sauce with no synthetic coloring or gums."
+    },
+    {
+        "name": "Spiced Honey Amla Murabba",
+        "subcategory_name": "Jams & Spreads",
+        "prep_time_mins": 45,
+        "approx_cost_inr": 40,
+        "recipe": "1. Steam fresh amla (gooseberries) until soft and prick with a fork.\n2. Simmer the steamed amla in organic honey or light jaggery syrup with cardamom and black pepper.\n3. Cook until the syrup thickens to a single-thread consistency.\n4. Cool and store for a Vitamin C-rich, immune-boosting sweet spread."
+    },
+    {
+        "name": "Creamy Herb Curd Dressing",
+        "subcategory_name": "Salad Dressings",
+        "prep_time_mins": 3,
+        "approx_cost_inr": 12,
+        "recipe": "1. Whisk fresh hung curd with lemon juice, crushed garlic, and black pepper.\n2. Stir in finely chopped fresh dill, mint, coriander, and a drizzle of cold-pressed olive oil.\n3. Drizzle over fresh green salads as a high-protein, zero-stabilizer dressing swap."
+  }
 ]
 
 def seed_database(db: Session):
     """
-    Seeds initial taxonomy categories and curated alternatives if table is empty.
+    Seeds missing taxonomy categories and missing curated alternatives dynamically.
     """
-    if db.query(ProductCategory).count() > 0:
-        return
-        
-    print("Database seeding: Populating taxonomy categories...")
+    print("Database seeding: Syncing taxonomy categories...")
     category_map = {}
-    for cat in SEED_CATEGORIES:
-        db_cat = ProductCategory(
-            category_name=cat["category"],
-            subcategory_name=cat["subcategory"],
-            snack_type=cat.get("snack_type", "None"),
-            beverage_type=cat.get("beverage_type", "None"),
-            flavor_profile=cat.get("flavor_profile", "Standard"),
-            texture_profile=cat.get("texture_profile", "Standard"),
-            craving_profile=cat.get("craving_profile", "Standard"),
-            convenience_profile=cat.get("convenience_profile", 5),
-            processing_level=cat.get("processing_level", 4)
-        )
-        db.add(db_cat)
-        db.flush() # populate ID
-        category_map[cat["subcategory"]] = db_cat.id
+    
+    # Pre-populate category map with existing entries
+    existing_cats = db.query(ProductCategory).all()
+    for ec in existing_cats:
+        category_map[ec.subcategory_name] = ec.id
         
-    print("Database seeding: Populating healthy alternatives...")
+    for cat in SEED_CATEGORIES:
+        sub_name = cat["subcategory"]
+        if sub_name not in category_map:
+            db_cat = ProductCategory(
+                category_name=cat["category"],
+                subcategory_name=sub_name,
+                snack_type=cat.get("snack_type", "None"),
+                beverage_type=cat.get("beverage_type", "None"),
+                flavor_profile=cat.get("flavor_profile", "Standard"),
+                texture_profile=cat.get("texture_profile", "Standard"),
+                craving_profile=cat.get("craving_profile", "Standard"),
+                convenience_profile=cat.get("convenience_profile", 5),
+                processing_level=cat.get("processing_level", 4)
+            )
+            db.add(db_cat)
+            db.flush() # populate ID
+            category_map[sub_name] = db_cat.id
+            
+    print("Database seeding: Syncing healthy alternatives...")
     for alt in SEED_ALTERNATIVES:
         sub_name = alt["subcategory_name"]
         cat_id = category_map.get(sub_name)
         if cat_id:
-            db_alt = Alternative(
-                name=alt["name"],
-                recipe=alt["recipe"],
-                prep_time_mins=alt["prep_time_mins"],
-                approx_cost_inr=alt["approx_cost_inr"],
-                category_id=cat_id
-            )
-            db.add(db_alt)
-            
+            # Check if this alternative already exists by name
+            existing_alt = db.query(Alternative).filter(
+                Alternative.name == alt["name"],
+                Alternative.category_id == cat_id
+            ).first()
+            if not existing_alt:
+                db_alt = Alternative(
+                    name=alt["name"],
+                    recipe=alt["recipe"],
+                    prep_time_mins=alt["prep_time_mins"],
+                    approx_cost_inr=alt["approx_cost_inr"],
+                    category_id=cat_id
+                )
+                db.add(db_alt)
+                
     db.commit()
-    print("Database seeding completed successfully.")
+    print("Database seeding and taxonomy sync completed successfully.")
 
 def migrate_tinydb_to_sqlite():
     """
