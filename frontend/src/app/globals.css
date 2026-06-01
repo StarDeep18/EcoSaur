@@ -55,30 +55,58 @@
   /* Elevation and Shadows */
   --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.4);
   --transition-soft: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Contrast Indicators */
+  --theme-success: #10b981;
+  --theme-warning: #fb923c;
+  --theme-error: #ef4444;
+  
+  --theme-success-border: rgba(16, 185, 129, 0.25);
+  --theme-success-bg: rgba(16, 185, 129, 0.02);
+  --theme-error-border: rgba(239, 68, 68, 0.25);
+  --theme-error-bg: rgba(239, 68, 68, 0.02);
+
+  --highlight-color: #fb923c;
+  --highlight-bg: rgba(245, 158, 11, 0.15);
+  --highlight-border: rgba(245, 158, 11, 0.4);
 }
 
 :root[data-theme="light"] {
   --bg-color: #faf9f5; /* Warm silky cream */
-  --text-main: #1e293b; /* Charcoal slate */
-  --text-muted: #64748b; /* Soft slate */
-  --card-bg: rgba(255, 255, 255, 0.85); /* Alabaster translucent glass */
-  --card-border: rgba(0, 0, 0, 0.08);
+  --text-main: #0f172a; /* Extra-dark slate for ultra high contrast */
+  --text-muted: #475569; /* Dark Slate for uncompromised readability */
+  --card-bg: rgba(255, 255, 255, 0.95); /* Nearly solid alabaster for maximum text support */
+  --card-border: rgba(15, 23, 42, 0.08);
   --primary: #0f766e; /* Deep Teal */
-  --primary-dark: #0d9488;
-  --primary-glow: rgba(15, 118, 110, 0.12);
-  --input-bg: rgba(255, 255, 255, 0.9);
-  --input-border: rgba(0, 0, 0, 0.12);
-  --logo-gradient: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #0284c7 100%);
-  --text-gradient: linear-gradient(to right, #1e293b, #64748b);
-  --body-gradient: radial-gradient(circle at 10% 20%, rgba(15, 118, 110, 0.04), transparent 40%),
-                   radial-gradient(circle at 85% 70%, rgba(2, 132, 199, 0.04), transparent 45%),
-                   radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.02), transparent 50%);
+  --primary-dark: #115e59;
+  --primary-glow: rgba(15, 118, 110, 0.08);
+  --input-bg: #ffffff; /* Clean white input boxes for maximum contrast */
+  --input-border: rgba(15, 23, 42, 0.15);
+  --logo-gradient: linear-gradient(135deg, #0f766e 0%, #115e59 50%, #0369a1 100%);
+  --text-gradient: linear-gradient(to right, #0f172a, #475569);
+  --body-gradient: radial-gradient(circle at 10% 20%, rgba(15, 118, 110, 0.03), transparent 40%),
+                   radial-gradient(circle at 85% 70%, rgba(3, 105, 161, 0.03), transparent 45%),
+                   radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.01), transparent 50%);
                    
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 12px 24px -4px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 20px 40px -8px rgba(0, 0, 0, 0.12);
+  --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 12px 24px -4px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 20px 40px -8px rgba(15, 23, 42, 0.08);
 
-  --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.03);
+  --shadow-subtle: 0 4px 20px rgba(15, 23, 42, 0.02);
+
+  /* Contrast Indicators in Light Mode */
+  --theme-success: #0d9488; /* High contrast Teal Green */
+  --theme-warning: #b45309; /* High contrast Deep Gold */
+  --theme-error: #be123c; /* High contrast Rose Red */
+  
+  --theme-success-border: rgba(13, 148, 136, 0.25);
+  --theme-success-bg: rgba(13, 148, 136, 0.03);
+  --theme-error-border: rgba(190, 18, 60, 0.25);
+  --theme-error-bg: rgba(190, 18, 60, 0.03);
+
+  --highlight-color: #b45309; /* Deep contrast brown-gold */
+  --highlight-bg: rgba(180, 83, 9, 0.08);
+  --highlight-border: rgba(180, 83, 9, 0.35);
 }
 
 * {
@@ -960,22 +988,54 @@ a {
 /* --- Phase 2: Premium Interactive Highlights & OCR Popovers --- */
 .ocr-highlight-token {
   display: inline-block;
-  background: rgba(245, 158, 11, 0.12);
-  color: #fb923c;
-  border-bottom: 2px dashed rgba(245, 158, 11, 0.5);
-  padding: 0.15rem 0.4rem;
-  border-radius: 6px;
+  background: var(--highlight-bg);
+  color: var(--highlight-color);
+  border-bottom: 2px dashed var(--highlight-border);
+  padding: 0.18rem 0.45rem;
+  border-radius: var(--radius-sm);
   margin: 0.15rem;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-weight: 600; /* Standardized bold font for superior legibility */
+  transition: var(--transition-soft);
 }
 
 .ocr-highlight-token:hover {
-  background: rgba(245, 158, 11, 0.25);
-  border-bottom-color: #fb923c;
+  background: var(--highlight-border);
+  color: var(--bg-color); /* Swap text and bg colors for perfect contrast on hover */
   transform: translateY(-1px) scale(1.03);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+  box-shadow: var(--shadow-sm);
+}
+
+/* --- High-Contrast Mode Adaptable Cards --- */
+.personalized-alert-box {
+  margin-top: 1.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  text-align: left;
+  font-size: var(--font-sm);
+  line-height: 1.5;
+  font-weight: 500;
+  transition: var(--transition-soft);
+}
+
+.comp-scanned-card {
+  border: 1px solid var(--theme-error-border);
+  background: var(--theme-error-bg);
+}
+
+.comp-scanned-header {
+  color: var(--theme-error) !important;
+  font-weight: 700;
+}
+
+.comp-swapping-card {
+  border: 1px solid var(--theme-success-border);
+  background: var(--theme-success-bg);
+}
+
+.comp-swapping-header {
+  color: var(--theme-success) !important;
+  font-weight: 700;
 }
 
 .correction-popover {
