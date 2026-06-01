@@ -19,7 +19,7 @@
 
 ## What is EcoSaur?
 
-EcoSaur scans packaged food ingredient labels, evaluates nutritional quality using a **transparent, rule-based scoring engine**, and suggests simple homemade alternatives — all without shaming brands or spreading misinformation.
+EcoSaur scans packaged food ingredient labels, evaluates nutritional quality using a **transparent, rule-based scoring engine**, and suggests simple homemade alternatives - all without shaming brands or spreading misinformation.
 
 Most food apps scare you. EcoSaur **educates** you.
 
