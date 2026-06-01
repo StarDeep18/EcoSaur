@@ -118,6 +118,20 @@ export default function ScanFlow() {
       setFile(selectedFile);
       setStep('EXTRACTING');
       
+      const fileHash = `ecosaur_ocr_${selectedFile.name}_${selectedFile.size}`;
+      try {
+        const cached = localStorage.getItem(fileHash);
+        if (cached) {
+          const cachedData = JSON.parse(cached);
+          setRawText(cachedData.raw_text);
+          setLowConfidenceWords(cachedData.low_confidence_words || []);
+          setStep('CORRECTION');
+          return;
+        }
+      } catch (err) {
+        console.warn("Failed to retrieve OCR cache:", err);
+      }
+      
       try {
         // Preprocess image on canvas (downscale, grayscale, increase contrast)
         const processedBlob = await preprocessImage(selectedFile);
@@ -134,6 +148,16 @@ export default function ScanFlow() {
         const data = await res.json();
         
         if (!res.ok) throw new Error(data.detail || 'Failed to extract text');
+        
+        // Cache parsed results permanently in local storage moat
+        try {
+          localStorage.setItem(fileHash, JSON.stringify({
+            raw_text: data.raw_text,
+            low_confidence_words: data.low_confidence_words || []
+          }));
+        } catch (err) {
+          console.warn("Failed to write to OCR cache:", err);
+        }
         
         setRawText(data.raw_text);
         setLowConfidenceWords(data.low_confidence_words || []);
