@@ -280,57 +280,34 @@ INGREDIENT_DICTIONARY = {
     }
 }
 
+from app.services import normalization_engine
+
 # Sub-millisecond Typo-Tolerant Normalizer helper
 def normalize_ingredient_name(raw_name: str) -> str:
     """
-    Cleans percentages, punctuation, and maps spelling typos/variants
-    to standard dictionary items using difflib fuzzy matching.
+    Cleans percentages, punctuation, and maps spelling typos/variants.
     """
-    # Remove percentage tags e.g., "wheat flour (60%)" -> "wheat flour"
-    cleaned = re.sub(r'\(\s*\d+\s*%\s*\)', '', raw_name)
-    cleaned = re.sub(r'\d+\s*%', '', cleaned)
-    cleaned = cleaned.strip().lower()
-    cleaned = cleaned.strip(".,*[]() ")
-    
-    if cleaned in INGREDIENT_DICTIONARY:
-        return cleaned
-        
-    # Find spelling typos (e.g. "plam oyl" -> "palm oil") using difflib
-    matches = difflib.get_close_matches(cleaned, INGREDIENT_DICTIONARY.keys(), n=1, cutoff=0.72)
-    if matches:
-        return matches[0]
-        
-    return cleaned
+    res = normalization_engine.normalize_ingredient(raw_name)
+    return res.get("name", raw_name)
 
 def analyze_ingredient(name: str) -> IngredientDetail:
     """
-    Fuzzy match ingredient label raw text against normalized dictionary.
-    Returns structured data for the UI and parser.
+    Fuzzy match ingredient label raw text against normalized centralized engine.
     """
-    norm_name = normalize_ingredient_name(name)
-    
-    if norm_name in INGREDIENT_DICTIONARY:
-        details = INGREDIENT_DICTIONARY[norm_name]
-        return IngredientDetail(name=norm_name, **details)
-        
-    # Fallback for unrecognized ingredients
-    is_additive = "e" in norm_name and any(char.isdigit() for char in norm_name)
-    is_preservative = "preservative" in norm_name or "benzoate" in norm_name or "sorbate" in norm_name
-    processing_level = 3 if (is_additive or is_preservative) else 2
-    
+    res = normalization_engine.normalize_ingredient(name)
     return IngredientDetail(
-        name=name,
-        category="Additive" if is_additive else "Ingredient",
-        processing_level=processing_level,
-        vegan=True,
-        vegetarian=True,
-        gluten_free=True,
-        safety_notes="Standard culinary ingredient, no specialized safety alerts documented.",
-        child_suitability=True,
-        diabetic_suitability=True,
-        is_additive=is_additive,
-        is_preservative=is_preservative,
-        is_controversial=False
+        name=res.get("name", name),
+        category=res.get("category", "Ingredient"),
+        processing_level=res.get("processing_level", 2),
+        vegan=res.get("vegan", True),
+        vegetarian=res.get("vegetarian", True),
+        gluten_free=res.get("gluten_free", True),
+        safety_notes=res.get("safety_notes", None),
+        child_suitability=res.get("child_suitability", True),
+        diabetic_suitability=res.get("diabetic_suitability", True),
+        is_additive=res.get("is_additive", res.get("additive_type", "None") != "None"),
+        is_preservative=res.get("is_preservative", "preservative" in res.get("category", "").lower()),
+        is_controversial=res.get("is_controversial", False)
     )
 
 def calculate_score(parsed_data: ParsedFoodData, health_mode: str = "General") -> Tuple[NutritionScorecard, List[ScoreBreakdown], Optional[PersonalizedAdjustment], List[IngredientDetail]]:
