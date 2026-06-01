@@ -28,9 +28,9 @@ Most food apps scare you. EcoSaur **educates** you.
 | Principle | What it means |
 |-----------|---------------|
 | 🔍 **Transparent Scoring** | Every point added or deducted is shown with a reason |
-| 🤖 **AI Explains, Not Decides** | EcoSaur AI generates explanations — scores are 100% deterministic |
+| 🤖 **AI Explains, Not Decides** | EcoSaur AI generates explanations - scores are 100% deterministic |
 | 🍳 **Actionable Alternatives** | Regional Indian homemade recipes, not generic Western advice |
-| 🛡️ **No Fear, No Shame** | Neutral, educational, and scientifically balanced tone — never attacks brands |
+| 🛡️ **No Fear, No Shame** | Neutral, educational, and scientifically balanced tone - never attacks brands |
 | 🛡️ **Scientific Trust** | Explicitly displays OCR and recognized ingredient confidence indices |
 
 ---
@@ -39,21 +39,21 @@ Most food apps scare you. EcoSaur **educates** you.
 
 ### ✅ Implemented (Premium Consumer-Grade)
 
-- **📷 Ingredient Label Scanner** — Upload or capture a photo of any food label
-- **🔤 AI Vision OCR** — Advanced text extraction from label images with device-level canvas filtering
-- **✏️ OCR Correction Layer** — Tap-to-correct spelling mistakes manually before running analyses (handles blurry/curved labels)
-- **⚡ Spellcheck Loop** — Captures manual spelling correction edits, logging them to improve OCR mapping dynamically
-- **⚙️ Deterministic Scoring Engine** — Multi-dimensional, reproducible health scores (0–100)
-- **🛡️ Confidence & Trust System** — Displays OCR confidence and dictionary matching rates on results cards for absolute transparency
+- **📷 Ingredient Label Scanner** - Upload or capture a photo of any food label
+- **🔤 AI Vision OCR** - Advanced text extraction from label images with device-level canvas filtering
+- **✏️ OCR Correction Layer** - Tap-to-correct spelling mistakes manually before running analyses (handles blurry/curved labels)
+- **⚡ Spellcheck Loop** - Captures manual spelling correction edits, logging them to improve OCR mapping dynamically
+- **⚙️ Deterministic Scoring Engine** - Multi-dimensional, reproducible health scores (0–100)
+- **🛡️ Confidence & Trust System** - Displays OCR confidence and dictionary matching rates on results cards for absolute transparency
 - **📊 Score Breakdown** — Transparent table showing exactly why each point was added or deducted
-- **💬 Balanced AI Explanations** — EcoSaur AI explains scores using calm, evidence-aware, non-alarmist scientific language
-- **🍲 Recommendation Reasoning** — Explainable matching system explaining flavor similarity, texture matching, convenience prep times, and processing reductions (NOVA 4 -> Group 1 or 2)
-- **🔄 swipable Alternatives** — Traditional regional Indian recipes suited to the exact snack category (e.g. makhana, chaas, semiya)
-- **⚖️ Product Comparison** — Side-by-side smart commercial comparison engine including custom comparison verdicts
-- **🗨️ Conversational UX** — Chat with EcoSaur AI about any ingredient after scan analyses
-- **🏷️ Barcode Scanner** — Permanent crowdsourced database moat lookups with OpenFoodFacts API fail-safes
-- **📜 Scan History Insights** — History dashboard displaying dynamic, non-judgmental behavioral diagnostics (weekly sugar consumption frequency, NOVA 4 ratios, E-number logs, and swap suggestion metrics)
-- **🛡️ Community Moderation Queue** — Admin queues to resolve barcode contributions, manage Rollbacks, and verify product uploads
+- **💬 Balanced AI Explanations** - EcoSaur AI explains scores using calm, evidence-aware, non-alarmist scientific language
+- **🍲 Recommendation Reasoning** - Explainable matching system explaining flavor similarity, texture matching, convenience prep times, and processing reductions (NOVA 4 -> Group 1 or 2)
+- **🔄 swipable Alternatives** - Traditional regional Indian recipes suited to the exact snack category (e.g. makhana, chaas, semiya)
+- **⚖️ Product Comparison** - Side-by-side smart commercial comparison engine including custom comparison verdicts
+- **🗨️ Conversational UX** - Chat with EcoSaur AI about any ingredient after scan analyses
+- **🏷️ Barcode Scanner** - Permanent crowdsourced database moat lookups with OpenFoodFacts API fail-safes
+- **📜 Scan History Insights** - History dashboard displaying dynamic, non-judgmental behavioral diagnostics (weekly sugar consumption frequency, NOVA 4 ratios, E-number logs, and swap suggestion metrics)
+- **🛡️ Community Moderation Queue** - Admin queues to resolve barcode contributions, manage Rollbacks, and verify product uploads
 
 ---
 
@@ -118,7 +118,7 @@ Most food apps scare you. EcoSaur **educates** you.
 
 - **Python** 3.11+
 - **Node.js** 18+
-- **AI API Key** — Get one from [Google AI Studio](https://aistudio.google.com/apikey)
+- **AI API Key** - Get one from [Google AI Studio](https://aistudio.google.com/apikey)
 
 ### 1. Clone the Repository
 
@@ -368,5 +368,5 @@ This project is open source. See individual dependency licenses for third-party 
 ---
 
 <p align="center">
-  <strong>🦕 EcoSaur — Guide users, don't scare them.</strong>
+  <strong>🦕 EcoSaur - Guide users, don't scare them.</strong>
 </p>
