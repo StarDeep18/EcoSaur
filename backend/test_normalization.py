@@ -5,12 +5,15 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.services import normalization_engine
-from app.db import tinydb_client
+from app.db.database import engine, Base
 
 def run_normalization_tests():
     print("==================================================")
     print("STARTING EcoSaur DETERMINISTIC NORMALIZATION TESTS")
     print("==================================================")
+    
+    # Initialize database tables for standalone test context
+    Base.metadata.create_all(bind=engine)
 
     # 1. Exact match test
     print("\n[TEST 1] Sourcing Exact Match: 'sugar'")
@@ -44,13 +47,22 @@ def run_normalization_tests():
     print(f"  Result Name: {res.get('name')}, Flagged: {res.get('flagged')}")
     assert res.get("flagged") is True, "Unknown ingredient should be flagged!"
     
-    # Verify that the unknown ingredient was successfully queued in TinyDB
-    from tinydb import Query
-    q = Query()
-    logged = tinydb_client.unknown_ingredients_table.get(q.name == "xylo-oligosaccharide")
-    print(f"  Queue verification in TinyDB Moat: {logged}")
-    assert logged is not None, "Unknown ingredient failed to queue in local db moat!"
-    assert logged.get("count") >= 1, "Count should be tracked!"
+    from app.db.database import SessionLocal
+    from app.models.database_models import ModerationQueue
+    import json
+    
+    db = SessionLocal()
+    try:
+        logged = db.query(ModerationQueue).filter(
+            ModerationQueue.item_type == "ingredient",
+            ModerationQueue.item_id == "xylo-oligosaccharide"
+        ).first()
+        print(f"  Queue verification in SQLite Moat: {logged}")
+        assert logged is not None, "Unknown ingredient failed to queue in local db moat!"
+        data = json.loads(logged.item_data_json)
+        assert data.get("count") >= 1, "Count should be tracked!"
+    finally:
+        db.close()
 
     print("\n==================================================")
     print("ALL DETERMINISTIC NORMALIZATION ENGINE TESTS PASSED!")

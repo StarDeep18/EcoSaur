@@ -411,7 +411,7 @@ export default function ScanFlow() {
       {showBarcodeModal && (
         <div className="modal-backdrop">
           <div className="modal-card">
-            <h2 className="title" style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'white' }}>
+            <h2 className="title" style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
                contribute Package Details
             </h2>
             <p className="subtitle" style={{ fontSize: '0.85rem', marginBottom: '1.5rem' }}>
@@ -433,9 +433,9 @@ export default function ScanFlow() {
                     width: '100%',
                     padding: '0.8rem',
                     borderRadius: '12px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                    color: 'white',
+                    border: '1px solid var(--input-border)',
+                    backgroundColor: 'var(--input-bg)',
+                    color: 'var(--text-main)',
                     fontSize: '0.9rem'
                   }}
                 />
@@ -455,9 +455,9 @@ export default function ScanFlow() {
                     width: '100%',
                     padding: '0.8rem',
                     borderRadius: '12px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                    color: 'white',
+                    border: '1px solid var(--input-border)',
+                    backgroundColor: 'var(--input-bg)',
+                    color: 'var(--text-main)',
                     fontSize: '0.9rem',
                     resize: 'vertical',
                     fontFamily: 'inherit'
@@ -692,23 +692,23 @@ export default function ScanFlow() {
                   Deterministic Score Moat
                 </span>
               </div>
-              <h2 className="title" style={{ fontSize: '2rem', marginBottom: '0.25rem', color: 'white', WebkitTextFillColor: 'initial', background: 'none' }}>
+              <h2 className="title" style={{ fontSize: '2rem', marginBottom: '0.25rem', color: 'var(--text-main)', WebkitTextFillColor: 'initial', background: 'none' }}>
                 {productName || results.category_info?.subcategory || "Scanned Item"}
               </h2>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                Top-Level Category: <strong style={{ color: '#cbd5e1' }}>{results.category_info?.category || "Snacks"}</strong>
+                Top-Level Category: <strong style={{ color: 'var(--text-main)' }}>{results.category_info?.category || "Snacks"}</strong>
               </p>
             </div>
 
             {results.confidence && (
               <div className="card animate-fade-in" style={{ 
                 padding: '0.85rem 1.25rem', 
-                background: 'rgba(15, 23, 42, 0.45)', 
+                background: 'var(--input-bg)', 
                 display: 'flex', 
                 justifyContent: 'space-between', 
                 alignItems: 'center',
                 fontSize: '0.8rem',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--card-border)',
                 borderRadius: '16px',
                 marginBottom: '1.25rem'
               }}>
@@ -747,7 +747,7 @@ export default function ScanFlow() {
               </div>
               
               <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Health Quality Index</h3>
-              <p style={{ fontSize: '0.95rem', color: '#cbd5e1', lineHeight: '1.6', padding: '0 0.5rem' }}>
+              <p style={{ fontSize: '0.95rem', color: 'var(--text-main)', lineHeight: '1.6', padding: '0 0.5rem' }}>
                 {results.explanation}
               </p>
               
@@ -823,7 +823,7 @@ export default function ScanFlow() {
             <div className="card" style={{ padding: '0.75rem 1.25rem' }}>
               {results.breakdown && results.breakdown.map((item: any, idx: number) => (
                 <div key={idx} className="breakdown-item">
-                  <span style={{ color: '#e2e8f0', flex: 1, paddingRight: '0.5rem', lineHeight: '1.4' }}>
+                  <span style={{ color: 'var(--text-main)', flex: 1, paddingRight: '0.5rem', lineHeight: '1.4' }}>
                     {item.impact < 0 ? '🔴' : '💚'} {item.reason}
                   </span>
                   <span className={item.impact < 0 ? 'impact-negative' : 'impact-positive'}>
@@ -842,7 +842,7 @@ export default function ScanFlow() {
               {(results.alternatives || [results.alternative]).map((alt: any, idx: number) => (
                 <div key={idx} className="carousel-card">
                   <div className="carousel-title-bar">
-                    <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', flex: 1, paddingRight: '0.5rem' }}>{alt.name}</h4>
+                    <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', flex: 1, paddingRight: '0.5rem' }}>{alt.name}</h4>
                     <span className="carousel-badge">NOVA 1 staple</span>
                   </div>
                   <div className="carousel-meta">
@@ -851,25 +851,25 @@ export default function ScanFlow() {
                   </div>
                   <div className="carousel-recipe-steps">
                     <strong>Healthy Preparation Recipe:</strong>
-                    <div style={{ marginTop: '0.4rem', color: '#cbd5e1' }}>{alt.recipe}</div>
+                    <div style={{ marginTop: '0.4rem', color: 'var(--text-main)' }}>{alt.recipe}</div>
                   </div>
                   {alt.reasoning && (
                     <div style={{
                       marginTop: '0.75rem',
                       padding: '0.75rem',
                       borderRadius: '12px',
-                      background: 'rgba(16, 185, 129, 0.05)',
-                      border: '1px solid rgba(16, 185, 129, 0.15)',
+                      background: 'var(--primary-glow)',
+                      border: '1px solid var(--primary)',
                       fontSize: '0.8rem',
                       lineHeight: '1.4'
                     }}>
-                      <div style={{ fontWeight: 700, color: '#34d399', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <div style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         🛡️ Why this alternative?
                       </div>
-                      <p style={{ color: '#94a3b8', marginBottom: '0.5rem', textAlign: 'left' }}>{alt.reasoning.why_selected}</p>
+                      <p style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', textAlign: 'left' }}>{alt.reasoning.why_selected}</p>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '0.25rem', textAlign: 'left' }}>
                         {alt.reasoning.bullets && alt.reasoning.bullets.map((b: string, bIdx: number) => (
-                          <span key={bIdx} style={{ color: '#e2e8f0', display: 'flex', alignItems: 'flex-start', gap: '0.3rem' }}>
+                          <span key={bIdx} style={{ color: 'var(--text-main)', display: 'flex', alignItems: 'flex-start', gap: '0.3rem' }}>
                             {b}
                           </span>
                         ))}
@@ -893,7 +893,7 @@ export default function ScanFlow() {
                   <span className="comparison-grade c-grade-F">{gradeLetter}</span>
                 </div>
                 <div style={{ marginBottom: '1.25rem' }}>
-                  <strong style={{ fontSize: '0.9rem', color: 'white' }}>{productName || "This Scanned Product"}</strong>
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}>{productName || "This Scanned Product"}</strong>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Top level category: {results.category_info?.subcategory}</div>
                 </div>
                 
@@ -979,7 +979,7 @@ export default function ScanFlow() {
                     <span className={`comparison-grade c-grade-${cCard.grade}`}>{cCard.grade}</span>
                   </div>
                   <div style={{ marginBottom: '1.25rem' }}>
-                    <strong style={{ fontSize: '0.9rem', color: 'white' }}>{cCard.product_name}</strong>
+                    <strong style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}>{cCard.product_name}</strong>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Index score: {cCard.score}/100</div>
                   </div>
 

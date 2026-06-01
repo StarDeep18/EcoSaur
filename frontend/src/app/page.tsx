@@ -16,7 +16,7 @@ export default function Home() {
       </p>
       
       <div className="card card-glow-primary" style={{ padding: '2.5rem 1.75rem' }}>
-        <h2 style={{ marginBottom: '1.25rem', fontSize: '1.35rem', fontWeight: 700, color: 'white' }}>
+        <h2 style={{ marginBottom: '1.25rem', fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-main)' }}>
           Evaluate Your Packaged Food
         </h2>
         
@@ -31,19 +31,19 @@ export default function Home() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '1.5rem', textAlign: 'left' }}>
         <div className="card" style={{ padding: '1rem', marginBottom: 0 }}>
           <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }}>🛡️</span>
-          <strong style={{ fontSize: '0.85rem', color: 'white', display: 'block' }}>Zero Brand Shaming</strong>
+          <strong style={{ fontSize: '0.85rem', color: 'var(--text-main)', display: 'block' }}>Zero Brand Shaming</strong>
           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.2rem' }}>Purely objective, evidence-based details.</span>
         </div>
         
         <div className="card" style={{ padding: '1rem', marginBottom: 0 }}>
           <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }}>⚖️</span>
-          <strong style={{ fontSize: '0.85rem', color: 'white', display: 'block' }}>Rule-Based Scoring</strong>
+          <strong style={{ fontSize: '0.85rem', color: 'var(--text-main)', display: 'block' }}>Rule-Based Scoring</strong>
           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.2rem' }}>No randomly made-up AI health grades.</span>
         </div>
         
         <div className="card" style={{ padding: '1rem', marginBottom: 0 }}>
           <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }}>🍳</span>
-          <strong style={{ fontSize: '0.85rem', color: 'white', display: 'block' }}>Indian Alternatives</strong>
+          <strong style={{ fontSize: '0.85rem', color: 'var(--text-main)', display: 'block' }}>Indian Alternatives</strong>
           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.2rem' }}>Curated home staples matching cravings.</span>
         </div>
       </div>

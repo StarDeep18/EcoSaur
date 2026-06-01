@@ -7,11 +7,21 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.services import category_engine
 from app.models.schemas import ParsedFoodData
+from app.db.database import engine, Base, SessionLocal
+from app.db.migrate import seed_database
 
 def run_tests():
     print("==============================================")
     print("STARTING EcoSaur PRODUCT CATEGORY ALIGNMENT TESTS")
     print("==============================================")
+    
+    # Initialize database tables and seed taxonomy for the standalone test context
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        seed_database(db)
+    finally:
+        db.close()
 
     # Test Case 1: Carbonated Drink (Coca-Cola)
     print("\n[TEST 1] Scanned: Coca-Cola")
