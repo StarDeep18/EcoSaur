@@ -1,21 +1,28 @@
 from fastapi import APIRouter, File, UploadFile, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from typing import Optional, Dict, Any, List
+from pydantic import BaseModel
+import re
+import json
+from datetime import datetime
+
+from app.db.database import get_db
+from app.db import crud
 from app.models.schemas import (
     ExtractedTextResponse, AnalysisRequest, AnalysisResponse, 
-    ChatRequest, ChatResponse, UserPreferencesRequest, UserPreferencesResponse
+    ChatRequest, ChatResponse, UserPreferencesRequest, UserPreferencesResponse,
+    HomemadeAlternative, ComparisonCard, ProductComparisonRequest, 
+    ProductComparisonResponse, ProductComparisonCard, CrowdsourceBarcodeRequest
 )
-from app.services import ocr_service, scoring, ai_service, parser, category_engine
-from app.models.schemas import HomemadeAlternative, ComparisonCard
-from app.db import tinydb_client
+from app.services import ocr_service, scoring, ai_service, parser, category_engine, normalization_engine
+from app.services.reasoning_engine import generate_recommendation_reasoning
 
 router = APIRouter()
-
-from app.services import normalization_engine
-import re
 
 @router.post("/scan/extract", response_model=ExtractedTextResponse)
 async def extract_text(file: UploadFile = File(...)):
     """
-    Step 1: Accept an image, use Gemini Vision to extract ingredients and nutrition info.
+    Step 1: Accept an image, use AI Vision to extract ingredients and nutrition info.
     Returns the raw string for the user to review and correct, along with low confidence word tags.
     """
     if not file.content_type.startswith("image/"):
@@ -50,7 +57,7 @@ async def extract_text(file: UploadFile = File(...)):
     return ExtractedTextResponse(raw_text=extracted_text, low_confidence_words=low_confidence_words)
 
 @router.post("/scan/analyze", response_model=AnalysisResponse)
-async def analyze_food(request: AnalysisRequest):
+async def analyze_food(request: AnalysisRequest, db: Session = Depends(get_db)):
     """
     Step 2: Accept corrected text, parse it, run deterministic scoring based on user preferences, 
     and get AI explanations/alternatives.
@@ -59,9 +66,9 @@ async def analyze_food(request: AnalysisRequest):
     health_mode = "General"
     user_id = request.user_id or "default"
     try:
-        prefs = tinydb_client.get_user_preferences(user_id)
-        if prefs and "health_mode" in prefs:
-            health_mode = prefs["health_mode"]
+        user = crud.get_user_preferences(db, user_id)
+        if user and user.health_mode:
+            health_mode = user.health_mode
     except Exception as e:
         print(f"Warning: Failed to fetch user preferences for scoring: {e}")
         
@@ -76,7 +83,6 @@ async def analyze_food(request: AnalysisRequest):
     category_info = category_engine.classify_product(product_name_for_classification, parsed_data.ingredients)
     
     # 4. Get ranked alternatives
-    from app.services.reasoning_engine import generate_recommendation_reasoning
     ranked_alts = category_engine.rank_alternatives(category_info)
     
     alternatives_list = []
@@ -103,27 +109,6 @@ async def analyze_food(request: AnalysisRequest):
     # 6. AI Explanation
     explanation = await ai_service.explain_score(parsed_data, scorecard, breakdown, health_mode=health_mode)
     
-    # 7. Save to local TinyDB NoSQL database (serialize scorecard)
-    try:
-        alternative_dict = {
-            "name": main_alternative.name, 
-            "recipe": main_alternative.recipe,
-            "prep_time_mins": main_alternative.prep_time_mins or 15,
-            "approx_cost_inr": main_alternative.approx_cost_inr or 40
-        }
-        breakdown_list = [{"reason": item.reason, "impact": item.impact} for item in breakdown]
-        tinydb_client.save_scan(
-            corrected_text=request.corrected_text,
-            score=int(100 - (scorecard.nova_group * 10) - (15 if scorecard.sugar_load == "High" else 0)), # Backward compatible raw score index
-            grade=f"NOVA {scorecard.nova_group}",
-            explanation=explanation,
-            alternative=alternative_dict,
-            breakdown=breakdown_list,
-            user_id=user_id
-        )
-    except Exception as e:
-        print(f"Warning: Failed to save scan to local database: {e}")
-    
     # Calculate dynamic trust confidence scores
     total_ings = len(ingredient_details)
     unrecognized_ings = sum(1 for det in ingredient_details if det.category == "Ingredient" and det.safety_notes and "Culinary ingredient" in det.safety_notes)
@@ -148,6 +133,32 @@ async def analyze_food(request: AnalysisRequest):
         "match_level": match_level
     }
 
+    # 7. Save to local SQLite database (serialize scorecard)
+    try:
+        alternative_dict = {
+            "name": main_alternative.name, 
+            "recipe": main_alternative.recipe,
+            "prep_time_mins": main_alternative.prep_time_mins or 15,
+            "approx_cost_inr": main_alternative.approx_cost_inr or 40
+        }
+        breakdown_list = [{"reason": item.reason, "impact": item.impact} for item in breakdown]
+        crud.save_scan(
+            db=db,
+            corrected_text=request.corrected_text,
+            score=int(100 - (scorecard.nova_group * 10) - (15 if scorecard.sugar_load == "High" else 0)), # Backward compatible raw score index
+            grade=f"NOVA {scorecard.nova_group}",
+            explanation=explanation,
+            alternative=alternative_dict,
+            breakdown=breakdown_list,
+            user_id=user_id,
+            confidence_ocr=ocr_score / 100.0,
+            confidence_match=match_score / 100.0,
+            confidence_analysis=0.95,
+            confidence_rec=0.90
+        )
+    except Exception as e:
+        print(f"Warning: Failed to save scan to local database: {e}")
+    
     return AnalysisResponse(
         scorecard=scorecard,
         explanation=explanation,
@@ -161,10 +172,8 @@ async def analyze_food(request: AnalysisRequest):
         confidence=confidence_data
     )
 
-from app.models.schemas import ProductComparisonRequest, ProductComparisonResponse, ProductComparisonCard
-
 @router.post("/products/compare", response_model=ProductComparisonResponse)
-async def compare_products(request: ProductComparisonRequest):
+async def compare_products(request: ProductComparisonRequest, db: Session = Depends(get_db)):
     """
     Advanced smart comparison system. Compares two or more food items,
     analyzing processing intensity, sugar levels, additives, and transparency side-by-side.
@@ -175,9 +184,9 @@ async def compare_products(request: ProductComparisonRequest):
     user_id = request.user_id or "default"
     health_mode = "General"
     try:
-        prefs = tinydb_client.get_user_preferences(user_id)
-        if prefs and "health_mode" in prefs:
-            health_mode = prefs["health_mode"]
+        user = crud.get_user_preferences(db, user_id)
+        if user and user.health_mode:
+            health_mode = user.health_mode
     except Exception as e:
         print(f"Warning: Failed to fetch user preferences: {e}")
         
@@ -213,11 +222,11 @@ async def compare_products(request: ProductComparisonRequest):
     card_a, card_b = cards[0], cards[1]
     
     if card_a.scorecard.nova_group < card_b.scorecard.nova_group:
-        verdict = f"Nutritional Review: '{card_a.product_name}' has a lower processing group (NOVA {card_a.scorecard.nova_group}) compared to '{card_b.product_name}' (NOVA {card_b.scorecard.nova_group}). Moderation is commonly recommended for items containing high added sweeteners or chemical thickeners. Option '{card_a.product_name}' represents a more traditional culinary option."
+        verdict = f"Nutritional Review: '{card_a.product_name}' has a lower processing group (NOVA {card_a.scorecard.nova_group}) compared to '{card_b.product_name}' (NOVA {card_b.scorecard.nova_group}). Swapping to options with a lower processing category aligns closer with standard wellness dietary guidelines."
     elif card_b.scorecard.nova_group < card_a.scorecard.nova_group:
-        verdict = f"Nutritional Review: '{card_b.product_name}' has a lower processing group (NOVA {card_b.scorecard.nova_group}) compared to '{card_a.product_name}' (NOVA {card_a.scorecard.nova_group}). Portions should be monitored for processed items. Swapping to '{card_b.product_name}' aligns closer with standard daily energy guidelines."
+        verdict = f"Nutritional Review: '{card_b.product_name}' has a lower processing group (NOVA {card_b.scorecard.nova_group}) compared to '{card_a.product_name}' (NOVA {card_a.scorecard.nova_group}). Portion monitoring is recommended for items under NOVA Group {card_a.scorecard.nova_group}."
     else:
-        verdict = f"Both '{card_a.product_name}' and '{card_b.product_name}' represent similar processing levels (NOVA {card_a.scorecard.nova_group}). Consumers are advised to verify portion sizes and consider direct whole grain culinary swaps like {card_a.healthy_alternative}."
+        verdict = f"Both '{card_a.product_name}' and '{card_b.product_name}' represent similar processing levels (NOVA {card_a.scorecard.nova_group}). We recommend preparing homemade alternatives such as {card_a.healthy_alternative} for regular consumption."
         
     return ProductComparisonResponse(comparison_cards=cards, verdict=verdict)
 
@@ -230,7 +239,7 @@ async def chat_about_food(request: ChatRequest):
     return ChatResponse(reply=reply)
 
 @router.get("/scan/barcode/{barcode}")
-async def scan_barcode(barcode: str):
+async def scan_barcode(barcode: str, db: Session = Depends(get_db)):
     """
     Query our local database moat for the barcode first.
     If not found, query OpenFoodFacts. If found there, cache it locally.
@@ -239,11 +248,11 @@ async def scan_barcode(barcode: str):
     barcode_clean = barcode.strip()
     
     # 1. Search local custom crowdsourced moat database
-    local_prod = tinydb_client.get_custom_barcode(barcode_clean)
+    local_prod = crud.get_custom_barcode(db, barcode_clean)
     if local_prod:
         return {
-            "raw_text": local_prod["ingredients_text"],
-            "product_name": local_prod["product_name"],
+            "raw_text": local_prod.ingredients_text,
+            "product_name": local_prod.product_name,
             "source": "local_database_moat"
         }
         
@@ -261,7 +270,8 @@ async def scan_barcode(barcode: str):
         }
         
     # 3. Cache inside database moat
-    tinydb_client.save_custom_barcode(
+    crud.save_custom_barcode(
+        db=db,
         barcode=barcode_clean,
         product_name="Scanned Product",
         ingredients_text=ingredients_text,
@@ -274,31 +284,63 @@ async def scan_barcode(barcode: str):
         "source": "openfoodfacts"
     }
 
-from app.models.schemas import CrowdsourceBarcodeRequest
-
 @router.post("/barcode/upload")
-async def upload_custom_barcode(request: CrowdsourceBarcodeRequest):
+async def upload_custom_barcode(request: CrowdsourceBarcodeRequest, db: Session = Depends(get_db)):
     """
     Crowdsources product details permanently into our database moat.
     """
     try:
-        saved = tinydb_client.save_custom_barcode(
+        saved = crud.save_custom_barcode(
+            db=db,
             barcode=request.barcode,
             product_name=request.product_name,
             ingredients_text=request.ingredients_text,
             user_id=request.user_id
         )
-        return {"status": "success", "message": "Product saved permanently to database moat.", "product": saved}
+        return {
+            "status": "success", 
+            "message": "Product saved permanently to database moat.", 
+            "product": {
+                "barcode": saved.barcode,
+                "product_name": saved.product_name,
+                "ingredients_text": saved.ingredients_text,
+                "verified": saved.verified
+            }
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save crowdsourced product: {str(e)}")
 
 @router.get("/scan/history")
-async def get_history(limit: int = 50):
+async def get_history(limit: int = 50, db: Session = Depends(get_db)):
     """
-    Get persistent scan history from local NoSQL database.
+    Get persistent scan history from local SQLite database.
     """
     try:
-        history = tinydb_client.get_scan_history(limit=limit)
+        history_records = crud.get_scan_history(db, limit=limit)
+        history = []
+        for s in history_records:
+            history.append({
+                "id": s.id,
+                "user_id": s.user_id,
+                "date": s.date.isoformat() if s.date else "",
+                "corrected_text": s.corrected_text,
+                "score": s.score,
+                "grade": s.grade,
+                "explanation": s.explanation,
+                "alternative": {
+                    "name": s.alternative_name,
+                    "recipe": s.alternative_recipe,
+                    "prep_time_mins": s.alternative_prep_time or 15,
+                    "approx_cost_inr": s.alternative_cost or 40
+                },
+                "breakdown": json.loads(s.breakdown_json) if s.breakdown_json else [],
+                "confidence": {
+                    "ocr_score": int((s.confidence_ocr or 1.0) * 100),
+                    "ocr_level": "High" if (s.confidence_ocr or 1.0) >= 0.9 else "Moderate" if (s.confidence_ocr or 1.0) >= 0.7 else "Low",
+                    "match_score": int((s.confidence_match or 1.0) * 100),
+                    "match_level": "High" if (s.confidence_match or 1.0) >= 0.9 else "Moderate" if (s.confidence_match or 1.0) >= 0.7 else "Low",
+                }
+            })
         return history
     except Exception as e:
         raise HTTPException(
@@ -307,12 +349,31 @@ async def get_history(limit: int = 50):
         )
 
 @router.get("/scan/history/insights")
-async def get_history_insights(limit: int = 50):
+async def get_history_insights(limit: int = 50, db: Session = Depends(get_db)):
     """
     Generate dynamic history insights from user scan logs.
     """
     try:
-        scans = tinydb_client.get_scan_history(limit=limit)
+        history_records = crud.get_scan_history(db, limit=limit)
+        scans = []
+        for s in history_records:
+            scans.append({
+                "id": s.id,
+                "user_id": s.user_id,
+                "date": s.date.isoformat() if s.date else "",
+                "corrected_text": s.corrected_text,
+                "score": s.score,
+                "grade": s.grade,
+                "explanation": s.explanation,
+                "alternative": {
+                    "name": s.alternative_name,
+                    "recipe": s.alternative_recipe,
+                    "prep_time_mins": s.alternative_prep_time or 15,
+                    "approx_cost_inr": s.alternative_cost or 40
+                },
+                "breakdown": json.loads(s.breakdown_json) if s.breakdown_json else []
+            })
+            
         from app.services.insights_engine import calculate_history_insights
         insights = calculate_history_insights(scans)
         return insights
@@ -323,13 +384,13 @@ async def get_history_insights(limit: int = 50):
         )
 
 @router.get("/user/preferences", response_model=UserPreferencesResponse)
-async def get_user_preferences():
+async def get_user_preferences(db: Session = Depends(get_db)):
     """
     Get user profile/health goal preferences.
     """
     try:
-        prefs = tinydb_client.get_user_preferences()
-        return UserPreferencesResponse(id=prefs["id"], health_mode=prefs["health_mode"])
+        user = crud.get_user_preferences(db)
+        return UserPreferencesResponse(id=user.id, health_mode=user.health_mode)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -337,13 +398,13 @@ async def get_user_preferences():
         )
 
 @router.put("/user/preferences", response_model=UserPreferencesResponse)
-async def update_user_preferences(request: UserPreferencesRequest):
+async def update_user_preferences(request: UserPreferencesRequest, db: Session = Depends(get_db)):
     """
     Update user health preference goal.
     """
     try:
-        updated = tinydb_client.update_user_preferences(health_mode=request.health_mode)
-        return UserPreferencesResponse(id=updated["id"], health_mode=updated["health_mode"])
+        user = crud.update_user_preferences(db, health_mode=request.health_mode)
+        return UserPreferencesResponse(id=user.id, health_mode=user.health_mode)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -351,12 +412,6 @@ async def update_user_preferences(request: UserPreferencesRequest):
         )
 
 # --- Phase 2: Crowdsourcing Dataset Growth Loops & Administration ---
-from pydantic import BaseModel
-from typing import Optional, Dict, Any, List
-from app.db.database import SessionLocal
-import json
-from datetime import datetime
-
 class OCRCorrectionRequest(BaseModel):
     original_text: str
     corrected_text: str
@@ -364,11 +419,10 @@ class OCRCorrectionRequest(BaseModel):
     user_id: Optional[str] = "default"
 
 @router.post("/ocr/correct")
-async def log_ocr_correction(request: OCRCorrectionRequest):
+async def log_ocr_correction(request: OCRCorrectionRequest, db: Session = Depends(get_db)):
     """
     Log manual user OCR corrections to the database to improve spellcheck maps.
     """
-    db = SessionLocal()
     try:
         from app.models.database_models import OCRCorrection, User
         user = db.query(User).filter(User.id == request.user_id).first()
@@ -389,15 +443,12 @@ async def log_ocr_correction(request: OCRCorrectionRequest):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to log OCR correction: {str(e)}")
-    finally:
-        db.close()
 
 @router.get("/admin/moderation/queue")
-async def get_moderation_queue(status: str = "pending"):
+async def get_moderation_queue(status: str = "pending", db: Session = Depends(get_db)):
     """
     Admin-only review workflow listing unverified barcode uploads or ingredient additions.
     """
-    db = SessionLocal()
     try:
         from app.models.database_models import ModerationQueue
         items = db.query(ModerationQueue).filter(ModerationQueue.status == status).all()
@@ -412,8 +463,8 @@ async def get_moderation_queue(status: str = "pending"):
                 "created_at": item.created_at.isoformat()
             } for item in items
         ]
-    finally:
-        db.close()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch moderation queue: {str(e)}")
 
 class ModerationActionRequest(BaseModel):
     queue_id: int
@@ -421,11 +472,10 @@ class ModerationActionRequest(BaseModel):
     reviewer_notes: Optional[str] = None
 
 @router.post("/admin/moderation/action")
-async def resolve_moderation_item(request: ModerationActionRequest):
+async def resolve_moderation_item(request: ModerationActionRequest, db: Session = Depends(get_db)):
     """
     Approve or reject a contributed barcode or unknown ingredient.
     """
-    db = SessionLocal()
     try:
         from app.models.database_models import ModerationQueue, Product, User
         item = db.query(ModerationQueue).filter(ModerationQueue.id == request.queue_id).first()
@@ -453,6 +503,3 @@ async def resolve_moderation_item(request: ModerationActionRequest):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to resolve moderation item: {str(e)}")
-    finally:
-        db.close()
-

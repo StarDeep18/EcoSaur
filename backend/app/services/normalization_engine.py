@@ -1,7 +1,7 @@
 import re
 import difflib
 from typing import List, Dict, Any, Optional
-from app.db import tinydb_client
+from app.db import crud
 
 # TRANSLATION INDEX FOR E-NUMBERS
 E_NUMBERS = {
@@ -512,7 +512,7 @@ def normalize_ingredient(raw_name: str) -> Dict[str, Any]:
 
     # 5. Fallback queue tracking for administrator moderator Moat review
     try:
-        tinydb_client.queue_unknown_ingredient(raw_name)
+        crud.queue_unknown_ingredient_standalone(raw_name)
     except Exception as e:
         print(f"Warning: Failed to queue unknown ingredient: {e}")
 
