@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from enum import Enum
 
 class HealthMode(str, Enum):
@@ -15,6 +15,13 @@ class HealthMode(str, Enum):
 
 class ExtractedTextResponse(BaseModel):
     raw_text: str
+    low_confidence_words: List[str] = []
+
+class CrowdsourceBarcodeRequest(BaseModel):
+    barcode: str
+    product_name: str
+    ingredients_text: str
+    user_id: Optional[str] = "default"
 
 class AnalysisRequest(BaseModel):
     corrected_text: str = Field(..., min_length=5, max_length=5000, description="Corrected OCR text must be between 5 and 5000 characters.")
@@ -31,6 +38,7 @@ class HomemadeAlternative(BaseModel):
     recipe: str
     prep_time_mins: Optional[int] = 15
     approx_cost_inr: Optional[int] = 40
+    reasoning: Optional[Dict[str, Any]] = None
 
 class ScoreBreakdown(BaseModel):
     reason: str
@@ -63,6 +71,25 @@ class PersonalizedAdjustment(BaseModel):
     active_mode: str
     reason: str
 
+class ProductCategoryInfo(BaseModel):
+    category: str
+    subcategory: str
+    snack_type: str = "None"
+    beverage_type: str = "None"
+    flavor_profile: str
+    processing_level: int
+
+class ComparisonCard(BaseModel):
+    product_name: str
+    score: int
+    grade: str
+    nova_group: int
+    sugar_load: str
+    sodium_load: str
+    key_negatives: List[str]
+    key_positives: List[str]
+    description: str
+
 class AnalysisResponse(BaseModel):
     scorecard: NutritionScorecard
     explanation: str
@@ -70,6 +97,10 @@ class AnalysisResponse(BaseModel):
     breakdown: List[ScoreBreakdown]
     personalized_adjustments: Optional[PersonalizedAdjustment] = None
     ingredient_details: List[IngredientDetail] = []
+    category_info: Optional[ProductCategoryInfo] = None
+    alternatives: List[HomemadeAlternative] = []
+    comparisons: List[ComparisonCard] = []
+    confidence: Optional[Dict[str, Any]] = None
 
 class ChatMessage(BaseModel):
     role: str
