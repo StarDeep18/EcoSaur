@@ -1,7 +1,7 @@
 <p align="center">
   <h1 align="center">🦕 EcoSaur</h1>
   <p align="center">
-    <strong>AI-Powered Food Ingredient Analyzer</strong><br/>
+    <strong>Premium AI-Powered Food Ingredient Analyzer</strong><br/>
     <em>Eat Smarter, Not Harder.</em>
   </p>
   <p align="center">
@@ -10,6 +10,7 @@
     <a href="#getting-started">Getting Started</a> •
     <a href="#api-reference">API</a> •
     <a href="#scoring-system">Scoring</a> •
+    <a href="#project-structure">Structure</a> •
     <a href="#roadmap">Roadmap</a>
   </p>
 </p>
@@ -27,26 +28,32 @@ Most food apps scare you. EcoSaur **educates** you.
 | Principle | What it means |
 |-----------|---------------|
 | 🔍 **Transparent Scoring** | Every point added or deducted is shown with a reason |
-| 🤖 **AI Explains, Not Decides** | Gemini generates explanations — scores are 100% deterministic |
+| 🤖 **AI Explains, Not Decides** | EcoSaur AI generates explanations — scores are 100% deterministic |
 | 🍳 **Actionable Alternatives** | Regional Indian homemade recipes, not generic Western advice |
-| 🛡️ **No Fear, No Shame** | Neutral, educational tone — never attacks brands |
+| 🛡️ **No Fear, No Shame** | Neutral, educational, and scientifically balanced tone — never attacks brands |
+| 🛡️ **Scientific Trust** | Explicitly displays OCR and recognized ingredient confidence indices |
 
 ---
 
 ## Features
 
-### ✅ Implemented (MVP)
+### ✅ Implemented (Premium Consumer-Grade)
 
 - **📷 Ingredient Label Scanner** — Upload or capture a photo of any food label
-- **🔤 Gemini Vision OCR** — AI-powered text extraction from label images
-- **✏️ OCR Correction Layer** — Edit extracted text before analysis (handles blurry/curved labels)
-- **⚙️ Rule-Based Scoring Engine** — Deterministic, reproducible health scores (0–100)
+- **🔤 AI Vision OCR** — Advanced text extraction from label images with device-level canvas filtering
+- **✏️ OCR Correction Layer** — Tap-to-correct spelling mistakes manually before running analyses (handles blurry/curved labels)
+- **⚡ Spellcheck Loop** — Captures manual spelling correction edits, logging them to improve OCR mapping dynamically
+- **⚙️ Deterministic Scoring Engine** — Multi-dimensional, reproducible health scores (0–100)
+- **🛡️ Confidence & Trust System** — Displays OCR confidence and dictionary matching rates on results cards for absolute transparency
 - **📊 Score Breakdown** — Transparent table showing exactly why each point was added or deducted
-- **💬 AI Explanations** — Gemini explains the score in simple, neutral language
-- **🍲 Homemade Alternatives** — Regional Indian recipe suggestions powered by AI
-- **🗨️ Conversational UX** — Chat with EcoSaur about any ingredient after analysis
-- **🏷️ Barcode Scanner** — Look up products via OpenFoodFacts API
-- **📜 Scan History** — Local storage-based history of past analyses
+- **💬 Balanced AI Explanations** — EcoSaur AI explains scores using calm, evidence-aware, non-alarmist scientific language
+- **🍲 Recommendation Reasoning** — Explainable matching system explaining flavor similarity, texture matching, convenience prep times, and processing reductions (NOVA 4 -> Group 1 or 2)
+- **🔄 swipable Alternatives** — Traditional regional Indian recipes suited to the exact snack category (e.g. makhana, chaas, semiya)
+- **⚖️ Product Comparison** — Side-by-side smart commercial comparison engine including custom comparison verdicts
+- **🗨️ Conversational UX** — Chat with EcoSaur AI about any ingredient after scan analyses
+- **🏷️ Barcode Scanner** — Permanent crowdsourced database moat lookups with OpenFoodFacts API fail-safes
+- **📜 Scan History Insights** — History dashboard displaying dynamic, non-judgmental behavioral diagnostics (weekly sugar consumption frequency, NOVA 4 ratios, E-number logs, and swap suggestion metrics)
+- **🛡️ Community Moderation Queue** — Admin queues to resolve barcode contributions, manage Rollbacks, and verify product uploads
 
 ---
 
@@ -65,8 +72,9 @@ Most food apps scare you. EcoSaur **educates** you.
 | Technology | Purpose |
 |------------|---------|
 | [FastAPI](https://fastapi.tiangolo.com/) | Python API server |
-| [Gemini 1.5 Flash](https://ai.google.dev/) | OCR, text parsing, explanations, chat |
-| [Supabase](https://supabase.com/) | Database (PostgreSQL) |
+| [SQLite](https://sqlite.org/) | Primary operational database with Write-Ahead Logging (WAL) enabled |
+| [SQLAlchemy ORM](https://www.sqlalchemy.org/) | Relational database mapping with migrations and query indexes |
+| [EcoSaur AI Vision](https://ai.google.dev/) | Advanced Multimodal OCR, text parsing, explanations, and chat |
 | [OpenFoodFacts API](https://world.openfoodfacts.org/) | Barcode product lookup |
 | [Pydantic](https://docs.pydantic.dev/) | Request/response validation |
 
@@ -88,16 +96,16 @@ Most food apps scare you. EcoSaur **educates** you.
 │                                                             │
 │  ┌─────────────┐  ┌──────────────┐  ┌────────────────────┐  │
 │  │ OCR Service  │  │ Text Parser  │  │  Scoring Engine    │  │
-│  │ (Gemini      │  │ (Gemini →    │  │  (100% Rule-Based, │  │
-│  │  Vision)     │  │  Structured  │  │   No AI)           │  │
+│  │ (AI Vision)  │  │ (AI Parser → │  │  (100% Rule-Based, │  │
+│  │             │  │  Structured  │  │   No AI)           │  │
 │  │             │  │  JSON)       │  │                    │  │
 │  └─────────────┘  └──────────────┘  └────────────────────┘  │
 │                                                             │
 │  ┌─────────────┐  ┌──────────────┐  ┌────────────────────┐  │
-│  │ AI Service   │  │ Barcode      │  │  Supabase DB       │  │
-│  │ (Explain,    │  │ Service      │  │  (Users, Scans,    │  │
-│  │  Recipes,    │  │ (OpenFood    │  │   Ingredients KB)  │  │
-│  │  Chat)       │  │  Facts)      │  │                    │  │
+│  │ AI Service   │  │ Barcode      │  │  SQLite DB         │  │
+│  │ (Explain,    │  │ Service      │  │  (SQLAlchemy ORM,  │  │
+│  │  Recipes,    │  │ (OpenFood    │  │   WAL Mode,        │  │
+│  │  Chat)       │  │  Facts)      │  │   Taxonomy Index)  │  │
 │  └─────────────┘  └──────────────┘  └────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -110,8 +118,7 @@ Most food apps scare you. EcoSaur **educates** you.
 
 - **Python** 3.11+
 - **Node.js** 18+
-- **Gemini API Key** — Get one from [Google AI Studio](https://aistudio.google.com/apikey)
-- **Supabase Project** *(optional for MVP)* — [supabase.com](https://supabase.com)
+- **AI API Key** — Get one from [Google AI Studio](https://aistudio.google.com/apikey)
 
 ### 1. Clone the Repository
 
@@ -140,9 +147,7 @@ pip install -r requirements.txt
 Create a `.env` file in the `backend/` directory:
 
 ```env
-GEMINI_API_KEY=your_gemini_api_key_here
-SUPABASE_URL=your_supabase_url_here
-SUPABASE_KEY=your_supabase_anon_key_here
+ECOSAUR_AI_API_KEY=your_ai_api_key_here
 ```
 
 Start the backend server:
@@ -151,7 +156,7 @@ Start the backend server:
 uvicorn app.main:app --reload --port 8000
 ```
 
-The API will be available at `http://localhost:8000`. API docs at `http://localhost:8000/docs`.
+The database tables will be initialized, seeded with taxonomy nodes, and legacy TinyDB history will be auto-migrated dynamically at startup. API docs will be available at `http://localhost:8000/docs`.
 
 ### 3. Frontend Setup
 
@@ -170,15 +175,6 @@ npm run dev
 
 The app will be available at `http://localhost:3000`.
 
-### 4. Database Setup (Optional)
-
-Run the schema in your Supabase SQL editor:
-
-```sql
--- Located at backend/db/schema.sql
--- Creates: users, scans, ingredients_kb tables
-```
-
 ---
 
 ## API Reference
@@ -187,7 +183,7 @@ Base URL: `http://localhost:8000/api/v1`
 
 ### `POST /scan/extract`
 
-Upload an image to extract ingredient text via Gemini Vision OCR.
+Upload an image to extract ingredient text via Multimodal AI Vision OCR.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -196,61 +192,57 @@ Upload an image to extract ingredient text via Gemini Vision OCR.
 **Response:**
 ```json
 {
-  "raw_text": "Ingredients: Wheat flour, Sugar, Palm oil..."
+  "raw_text": "Ingredients: Wheat flour, Sugar, Palm oil...",
+  "low_confidence_words": ["plam", "sger"]
 }
 ```
 
 ### `POST /scan/analyze`
 
-Submit corrected text for deterministic scoring + AI explanation.
+Submit corrected text for deterministic scoring, trust index computation, and AI explanation.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `corrected_text` | `string` | Corrected OCR text (5–5000 chars) |
+| `product_name` | `string` | Optional name of the product |
 
 **Response:**
 ```json
 {
-  "score": 65,
-  "grade": "C",
-  "explanation": "This product contains added sugars and refined flour...",
+  "scorecard": {
+    "nova_group": 4,
+    "additive_density": "High",
+    "sugar_load": "High",
+    "sodium_load": "Low",
+    "transparency_index": "Moderate",
+    "protein_quality": "Standard",
+    "fiber_quality": "Standard"
+  },
+  "explanation": "This product represents a processed snacker option. WHO guidelines suggest portion moderation...",
   "alternative": {
-    "name": "Homemade Ragi Cookies",
-    "recipe": "1. Mix ragi flour with jaggery..."
+    "name": "Roasted Spiced Makhana",
+    "recipe": "1. Roast makhana. 2. Toss with ghee...",
+    "prep_time_mins": 6,
+    "approx_cost_inr": 25,
+    "reasoning": {
+      "why_selected": "Recommended because it matches your preferred salty & spicy flavor...",
+      "bullets": [
+        "✓ Direct category match for Chips & Crisps",
+        "✓ Reduces processing from NOVA 4 to NOVA 2",
+        "✓ Under 6 minutes prep time"
+      ]
+    }
   },
   "breakdown": [
-    { "reason": "Contains added sugars", "impact": -10 },
-    { "reason": "Contains refined flour (Maida)", "impact": -10 },
-    { "reason": "Good source of protein", "impact": 10 }
-  ]
-}
-```
-
-### `POST /scan/chat`
-
-Conversational follow-up about ingredients.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ingredients` | `string[]` | Ingredient list for context |
-| `history` | `ChatMessage[]` | Previous messages |
-| `message` | `string` | User's question |
-
-**Response:**
-```json
-{
-  "reply": "Maltodextrin is a starch-derived food additive..."
-}
-```
-
-### `GET /scan/barcode/{barcode}`
-
-Look up a product by barcode via OpenFoodFacts.
-
-**Response:**
-```json
-{
-  "raw_text": "Carbonated Water, Sugar, Colour (Caramel E150d)..."
+    { "reason": "Product is classified as ultra-processed (NOVA 4)", "impact": -15 },
+    { "reason": "Sugar load exceeds 15g per serving", "impact": -15 }
+  ],
+  "confidence": {
+    "ocr_score": 95,
+    "ocr_level": "High",
+    "match_score": 100,
+    "match_level": "High"
+  }
 }
 ```
 
@@ -286,17 +278,6 @@ Every product starts at **100 points**. Points are added or deducted based on tr
 | Good fiber (≥3g) | **+10** | High dietary fiber |
 | Simple ingredients (≤5) | **+5** | Minimal processing |
 
-### Grade Scale
-
-| Score | Grade | Meaning |
-|-------|-------|---------|
-| 90–100 | **S** | Excellent nutritional quality |
-| 80–89 | **A** | Very good |
-| 70–79 | **B** | Good |
-| 60–69 | **C** | Moderate |
-| 40–59 | **D** | Poor |
-| 0–39 | **F** | Worst nutritional quality |
-
 ---
 
 ## Project Structure
@@ -306,94 +287,59 @@ EcoSaur/
 ├── backend/
 │   ├── app/
 │   │   ├── api/
-│   │   │   └── endpoints.py        # REST API routes
+│   │   │   └── endpoints.py        # REST API routes & admin moderation
 │   │   ├── core/
 │   │   │   └── config.py           # Environment config (Pydantic)
 │   │   ├── db/
-│   │   │   └── supabase_client.py  # Database client
+│   │   │   ├── database.py         # SQLite connector & WAL Mode
+│   │   │   ├── migrate.py          # Category seeder & TinyDB migrator
+│   │   │   └── tinydb_client.py    # Backward-compatible database adapter
 │   │   ├── models/
+│   │   │   ├── database_models.py  # SQLAlchemy ORM models
 │   │   │   └── schemas.py          # Pydantic request/response models
 │   │   ├── services/
-│   │   │   ├── ai_service.py       # Gemini: explanations, recipes, chat
+│   │   │   ├── ai_service.py       # Explanations, recipes, chat persona
 │   │   │   ├── barcode_service.py  # OpenFoodFacts barcode lookup
-│   │   │   ├── ocr_service.py      # Gemini Vision OCR extraction
-│   │   │   ├── parser.py           # Gemini: structured text → JSON
+│   │   │   ├── category_engine.py  # Relational taxonomic classifier
+│   │   │   ├── insights_engine.py  # scan history behavior diagnostic
+│   │   │   ├── ocr_service.py      # AI Vision OCR extraction
+│   │   │   ├── parser.py           # Structuring text → JSON
+│   │   │   ├── reasoning_engine.py # explainable matching compiler
 │   │   │   └── scoring.py          # ⭐ Deterministic scoring engine
 │   │   └── main.py                 # FastAPI app entry point
-│   ├── db/
-│   │   └── schema.sql              # Supabase database schema
-│   ├── .env                        # Environment variables
-│   └── requirements.txt            # Python dependencies
+│   ├── requirements.txt            # Python dependencies
 │
 ├── frontend/
 │   ├── src/app/
 │   │   ├── page.tsx                # Landing page
 │   │   ├── scan/page.tsx           # Scan flow (upload → OCR → correct → results → chat)
-│   │   ├── history/page.tsx        # Scan history
+│   │   ├── history/page.tsx        # Insights & History dashboard
 │   │   ├── layout.tsx              # Root layout
-│   │   └── globals.css             # Global styles
-│   ├── package.json
-│   └── tsconfig.json
+│   │   └── globals.css             # Spacing variables & HSL colors
 │
-├── Gemini.md                       # Project specification & guidelines
 └── README.md                       # You are here
-```
-
----
-
-## App Flow
-
-```
-📱 Open App
-    │
-    ├──→ 📷 Upload ingredient label photo
-    │         │
-    │         ▼
-    │    🔤 Gemini Vision extracts text (OCR)
-    │         │
-    │         ▼
-    │    ✏️ User reviews & corrects OCR text
-    │         │
-    │         ▼
-    │    ⚙️ Rule-based engine calculates score
-    │         │
-    │         ▼
-    │    📊 Results: Grade + Score + Breakdown
-    │    💬 AI Explanation (neutral & educational)
-    │    🍲 Homemade Alternative (regional Indian)
-    │    🗨️ Chat: "Ask EcoSaur" about ingredients
-    │
-    └──→ 🏷️ Enter Barcode → OpenFoodFacts lookup → same flow
 ```
 
 ---
 
 ## Roadmap
 
-### ✅ Phase 1 — MVP (Current)
-- [x] Image upload & Gemini Vision OCR
-- [x] Editable OCR correction layer
-- [x] Deterministic rule-based scoring engine
-- [x] Transparent score breakdown
-- [x] AI-powered explanations
-- [x] Homemade alternative suggestions
-- [x] Barcode scanner (OpenFoodFacts)
-- [x] Conversational chat UX
-- [x] Scan history (localStorage)
+### ✅ Phase 1 & 2 — Premium High-Trust Release (Completed)
+- [x] Multimodal AI Vision OCR with device-level preprocessing
+- [x] Editable OCR correction layer & manual spellcheck feedback logs
+- [x] Deterministic rule-based scoring engine & transparent breakdown
+- [x] Explainable suggestion matching detailing craving and texture similarity
+- [x] Unified dark-obsidian design system with premium transition motion
+- [x] OCR & Ingredient Recognized trust confidence indices
+- [x] Non-judgmental Scan History behavioral insights & swap dashboards
+- [x] Admin crowdsourcing queues & contributor verification actions
+- [x] Supabase/TinyDB systems fully migrated to highly operational SQLite ORM structures under WAL mode
 
-### 🔲 Phase 2 — Enhanced Experience
-- [ ] User authentication (Supabase Auth)
-- [ ] Cloud-persisted scan history
-- [ ] User health profiles (Weight Loss, Gym, Diabetic, Child-Friendly)
-- [ ] Improved UI/UX polish & animations
-- [ ] PWA support for mobile
-
-### 🔲 Phase 3 — Advanced Features
-- [ ] Product comparison engine
-- [ ] Community recipe submissions
-- [ ] Personalized scoring adjustments by health mode
-- [ ] Gamification (streaks, badges, weekly insights)
-- [ ] Ingredient knowledge base expansion
+### 🔲 Phase 3 — Community & Mobile Releases
+- [ ] PWA installation support for iOS & Android
+- [ ] User authentication (OAuth integration)
+- [ ] smart comparison charts across commercial snack brands
+- [ ] Gamification (streaks, badges, and community goals)
 
 ---
 
