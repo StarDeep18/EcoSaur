@@ -121,6 +121,16 @@ class UserPreferencesResponse(BaseModel):
     id: str
     health_mode: str
 
+class OCRCorrectionRequest(BaseModel):
+    original_text: str
+    corrected_text: str
+    product_name: Optional[str] = None
+    user_id: Optional[str] = "default"
+
+class OCRCorrectionResponse(BaseModel):
+    status: str
+    message: str
+
 # Product comparison schema models
 class ProductComparisonRequest(BaseModel):
     product_names: List[str] = Field(..., description="Names of products to compare.")
@@ -137,6 +147,20 @@ class ProductComparisonCard(BaseModel):
 class ProductComparisonResponse(BaseModel):
     comparison_cards: List[ProductComparisonCard]
     verdict: str
+
+class RecommendationExplainRequest(BaseModel):
+    category_info: ProductCategoryInfo
+    scorecard: NutritionScorecard
+    alternative: HomemadeAlternative
+    breakdown: List[ScoreBreakdown] = []
+
+class RecommendationExplainResponse(BaseModel):
+    why_selected: str
+    similarity_explanation: str
+    nutritional_improvement: str
+    processing_reduction: str
+    flavor_craving_similarity: str
+    bullets: List[str]
 
 
 
