@@ -244,121 +244,16 @@ def seed_database(db: Session):
     db.commit()
     print("Database seeding and taxonomy sync completed successfully.")
 
-def migrate_tinydb_to_sqlite():
+def init_db():
     """
-    Safely executes TinyDB to SQLite migrations at application startup.
-    Runs only if there is TinyDB data and SQLite has not yet been populated.
+    Initializes the SQLite database tables and seeds the taxonomy categories
+    and healthy alternatives.
     """
-    # Create SQLite tables if they do not exist
     Base.metadata.create_all(bind=engine)
-    
     db = SessionLocal()
     try:
-        # 1. Seed initial taxonomy
         seed_database(db)
-        
-        # 2. Check if migration needs to run
-        legacy_db_path = "ecosaur_db.json"
-        if not os.path.exists(legacy_db_path):
-            print("No legacy TinyDB file found. Skipping data migration.")
-            return
-
-        # Check if migration was already performed
-        if db.query(Scan).count() > 0 or db.query(User).count() > 1:
-            print("Relational database already populated. Legacy data migration skipped.")
-            return
-
-        print("Migrating legacy data from TinyDB to SQLite...")
-        with open(legacy_db_path, "r", encoding="utf-8") as f:
-            legacy_data = json.load(f)
-            
-        # Migrate Users
-        legacy_users = legacy_data.get("users", {})
-        for user_key, u_val in legacy_users.items():
-            u_id = u_val.get("id", "default")
-            existing_user = db.query(User).filter(User.id == u_id).first()
-            if not existing_user:
-                new_user = User(
-                    id=u_id,
-                    health_mode=u_val.get("health_mode", "General"),
-                    created_at=datetime.fromisoformat(u_val.get("created_at")) if u_val.get("created_at") else datetime.utcnow(),
-                    updated_at=datetime.fromisoformat(u_val.get("updated_at")) if u_val.get("updated_at") else datetime.utcnow()
-                )
-                db.add(new_user)
-        db.commit()
-
-        # Migrate Scans
-        legacy_scans = legacy_data.get("scans", {})
-        for scan_key, s_val in legacy_scans.items():
-            # Get cached alternative values
-            alt_dict = s_val.get("alternative", {})
-            breakdown_list = s_val.get("breakdown", [])
-            
-            # Formulate scan models
-            dt = datetime.utcnow()
-            if s_val.get("date"):
-                try:
-                    dt = datetime.fromisoformat(s_val.get("date"))
-                except:
-                    pass
-                    
-            new_scan = Scan(
-                id=s_val.get("id", str(uuid.uuid4())),
-                user_id=s_val.get("user_id", "default"),
-                date=dt,
-                corrected_text=s_val.get("corrected_text", ""),
-                score=s_val.get("score", 80),
-                grade=s_val.get("grade", "A"),
-                explanation=s_val.get("explanation", ""),
-                alternative_name=alt_dict.get("name", ""),
-                alternative_recipe=alt_dict.get("recipe", ""),
-                alternative_prep_time=alt_dict.get("prep_time_mins", 15),
-                alternative_cost=alt_dict.get("approx_cost_inr", 40),
-                breakdown_json=json.dumps(breakdown_list),
-                confidence_ocr=0.9,
-                confidence_match=0.9,
-                confidence_analysis=0.9,
-                confidence_rec=0.9
-            )
-            db.add(new_scan)
-
-        # Migrate Unknown Ingredients to Moderation Queue
-        legacy_ing = legacy_data.get("unknown_ingredients", {})
-        for ing_key, ing_val in legacy_ing.items():
-            name = ing_val.get("name", "")
-            count = ing_val.get("count", 1)
-            
-            queue_item = {
-                "name": name,
-                "count": count,
-                "first_scanned": ing_val.get("first_scanned"),
-                "last_scanned": ing_val.get("last_scanned")
-            }
-            
-            moderation_entry = ModerationQueue(
-                item_type="ingredient",
-                item_id=name,
-                item_data_json=json.dumps(queue_item),
-                status="pending",
-                reviewer_notes=f"Migrated from legacy TinyDB count: {count}"
-            )
-            db.add(moderation_entry)
-
-        db.commit()
-        print("Legacy TinyDB data successfully migrated to SQLite ORM.")
-
-        # Rename legacy DB to keep backup
-        backup_name = "ecosaur_db_legacy.json.bak"
-        try:
-            if os.path.exists(backup_name):
-                os.remove(backup_name)
-            os.rename(legacy_db_path, backup_name)
-            print(f"Legacy database archived to: {backup_name}")
-        except Exception as err:
-            print(f"Warning: Failed to rename legacy TinyDB: {err}")
-
     except Exception as e:
-        db.rollback()
-        print(f"Error executing TinyDB SQLite migration: {e}")
+        print(f"Error during database initialization: {e}")
     finally:
         db.close()

@@ -1,14 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import endpoints
-from app.db.migrate import migrate_tinydb_to_sqlite
+from app.db.migrate import init_db
 
 app = FastAPI(title="EcoSaur API", version="1.0.0")
 
 @app.on_event("startup")
 async def startup_event():
-    print("FastAPI Startup: Running database initialization and migration...")
-    migrate_tinydb_to_sqlite()
+    print("FastAPI Startup: Running database initialization and seeding...")
+    init_db()
 
 # Allow Next.js frontend to communicate with FastAPI
 app.add_middleware(

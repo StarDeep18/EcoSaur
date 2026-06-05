@@ -12,7 +12,9 @@ from app.models.schemas import (
     ExtractedTextResponse, AnalysisRequest, AnalysisResponse, 
     ChatRequest, ChatResponse, UserPreferencesRequest, UserPreferencesResponse,
     HomemadeAlternative, ComparisonCard, ProductComparisonRequest, 
-    ProductComparisonResponse, ProductComparisonCard, CrowdsourceBarcodeRequest
+    ProductComparisonResponse, ProductComparisonCard, CrowdsourceBarcodeRequest,
+    OCRCorrectionRequest, OCRCorrectionResponse, RecommendationExplainRequest,
+    RecommendationExplainResponse
 )
 from app.services import ocr_service, scoring, ai_service, parser, category_engine, normalization_engine
 from app.services.reasoning_engine import generate_recommendation_reasoning
@@ -172,7 +174,7 @@ async def analyze_food(request: AnalysisRequest, db: Session = Depends(get_db)):
         confidence=confidence_data
     )
 
-@router.post("/products/compare", response_model=ProductComparisonResponse)
+@router.post("/product/compare", response_model=ProductComparisonResponse)
 async def compare_products(request: ProductComparisonRequest, db: Session = Depends(get_db)):
     """
     Advanced smart comparison system. Compares two or more food items,
@@ -230,6 +232,13 @@ async def compare_products(request: ProductComparisonRequest, db: Session = Depe
         
     return ProductComparisonResponse(comparison_cards=cards, verdict=verdict)
 
+@router.post("/products/compare", response_model=ProductComparisonResponse, deprecated=True)
+async def compare_products_legacy(request: ProductComparisonRequest, db: Session = Depends(get_db)):
+    """
+    Deprecated legacy route mapping to the new standardized comparison endpoint.
+    """
+    return await compare_products(request, db)
+
 @router.post("/scan/chat", response_model=ChatResponse)
 async def chat_about_food(request: ChatRequest):
     """
@@ -238,13 +247,7 @@ async def chat_about_food(request: ChatRequest):
     reply = await ai_service.chat_with_user(request.ingredients, request.history, request.message)
     return ChatResponse(reply=reply)
 
-@router.get("/scan/barcode/{barcode}")
-async def scan_barcode(barcode: str, db: Session = Depends(get_db)):
-    """
-    Query our local database moat for the barcode first.
-    If not found, query OpenFoodFacts. If found there, cache it locally.
-    If not found anywhere, return a fallback ingestion trigger.
-    """
+async def barcode_lookup_impl(barcode: str, db: Session):
     barcode_clean = barcode.strip()
     
     # 1. Search local custom crowdsourced moat database
@@ -283,6 +286,24 @@ async def scan_barcode(barcode: str, db: Session = Depends(get_db)):
         "product_name": "Scanned Product",
         "source": "openfoodfacts"
     }
+
+@router.get("/barcode/lookup/{barcode}")
+async def lookup_barcode(barcode: str, db: Session = Depends(get_db)):
+    """
+    Query our local database moat for the barcode first.
+    If not found, query OpenFoodFacts. If found there, cache it locally.
+    If not found anywhere, return a fallback ingestion trigger.
+    """
+    return await barcode_lookup_impl(barcode, db)
+
+@router.get("/scan/barcode/{barcode}", deprecated=True)
+async def scan_barcode(barcode: str, db: Session = Depends(get_db)):
+    """
+    Query our local database moat for the barcode first.
+    If not found, query OpenFoodFacts. If found there, cache it locally.
+    If not found anywhere, return a fallback ingestion trigger.
+    """
+    return await barcode_lookup_impl(barcode, db)
 
 @router.post("/barcode/upload")
 async def upload_custom_barcode(request: CrowdsourceBarcodeRequest, db: Session = Depends(get_db)):
@@ -412,13 +433,7 @@ async def update_user_preferences(request: UserPreferencesRequest, db: Session =
         )
 
 # --- Phase 2: Crowdsourcing Dataset Growth Loops & Administration ---
-class OCRCorrectionRequest(BaseModel):
-    original_text: str
-    corrected_text: str
-    product_name: Optional[str] = None
-    user_id: Optional[str] = "default"
-
-@router.post("/ocr/correct")
+@router.post("/ocr/correct", response_model=OCRCorrectionResponse)
 async def log_ocr_correction(request: OCRCorrectionRequest, db: Session = Depends(get_db)):
     """
     Log manual user OCR corrections to the database to improve spellcheck maps.
@@ -439,7 +454,7 @@ async def log_ocr_correction(request: OCRCorrectionRequest, db: Session = Depend
         )
         db.add(correction)
         db.commit()
-        return {"status": "success", "message": "OCR correction logged successfully."}
+        return OCRCorrectionResponse(status="success", message="OCR correction logged successfully.")
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to log OCR correction: {str(e)}")
@@ -503,3 +518,22 @@ async def resolve_moderation_item(request: ModerationActionRequest, db: Session 
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to resolve moderation item: {str(e)}")
+
+@router.post("/recommendation/explain", response_model=RecommendationExplainResponse)
+async def explain_recommendation(request: RecommendationExplainRequest):
+    """
+    Generate recommendation reasoning dynamically (comparing scanned attributes against alternatives).
+    """
+    try:
+        reasoning = generate_recommendation_reasoning(
+            request.category_info,
+            request.alternative,
+            request.scorecard,
+            request.breakdown
+        )
+        return RecommendationExplainResponse(**reasoning)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to compile recommendation reasoning: {str(e)}"
+        )
