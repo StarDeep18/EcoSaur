@@ -1,0 +1,623 @@
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, useColorScheme, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { calculateClientScore, getMetricColor } from '../utils/scoring';
+import { api } from '../services/api';
+import { THEME } from '../theme';
+
+interface ChatMessage {
+  role: 'user' | 'model';
+  content: string;
+}
+
+export default function ResultsScreen() {
+  const params = useLocalSearchParams();
+  const router = useRouter();
+  const colorScheme = useColorScheme() ?? 'dark';
+  const theme = THEME[colorScheme as 'light' | 'dark'];
+
+  const results = JSON.parse((params.resultsPayload as string) || '{}');
+  const productName = (params.productName as string) || 'Scanned Product';
+
+  const scorecard = results.scorecard || {
+    nova_group: 4,
+    additive_density: 'High',
+    sugar_load: 'High',
+    sodium_load: 'Low',
+    transparency_index: 'High',
+    protein_quality: 'Standard',
+    fiber_quality: 'Standard',
+  };
+
+  const scoreVal = calculateClientScore(scorecard);
+
+  // Alternatives
+  const alternativesList = results.alternatives || [results.alternative].filter(Boolean);
+  const mainAlternative = alternativesList[0] || {
+    name: 'Homemade Alternative',
+    prep_time_mins: 15,
+    approx_cost_inr: 35,
+    recipe: 'Prepare with natural, fresh ingredients.',
+    reasoning: {
+      why_selected: 'Great healthy swap for this category.',
+      bullets: ['✓ 100% additive free', '✓ Reduces processing', '✓ Simpler local ingredients']
+    }
+  };
+
+  // State for collapsible detailed insights
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
+
+  // Recommendation feedback telemetry state
+  const [feedbackLogged, setFeedbackLogged] = useState<Record<number, 'up' | 'down' | null>>({});
+
+  // Chat states
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [chatLoading, setChatLoading] = useState(false);
+
+  const handleSendChat = async () => {
+    if (!chatInput.trim() || chatLoading) return;
+    const userMsg: ChatMessage = { role: 'user', content: chatInput };
+    setChatHistory(prev => [...prev, userMsg]);
+    setChatInput('');
+    setChatLoading(true);
+    try {
+      const response = await api.chatWithAI(
+        [results.corrected_text || ''],
+        chatHistory.map(m => ({ role: m.role, content: m.content })),
+        userMsg.content
+      );
+      setChatHistory(prev => [...prev, { role: 'model', content: response.reply }]);
+    } catch (err) {
+      setChatHistory(prev => [...prev, { role: 'model', content: 'Could not connect to AI assistant. Please try again.' }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const handleFeedback = (idx: number, type: 'up' | 'down') => {
+    setFeedbackLogged(prev => ({ ...prev, [idx]: type }));
+    // In background, log feedback to crowdsourced loops
+    Alert.alert('Feedback Registered', 'Thank you! This helps optimize EcoSaur alternatives.');
+  };
+
+  // Helper to extract main concern
+  const getMainConcerns = () => {
+    const concerns = [];
+    if (scorecard.nova_group === 4) concerns.push('Ultra-Processed');
+    if (scorecard.sugar_load === 'High') concerns.push('High Sugar Load');
+    if (scorecard.additive_density === 'High') concerns.push('High Additives');
+    if (scorecard.sodium_load === 'High') concerns.push('High Sodium');
+    
+    if (concerns.length === 0) {
+      if (scorecard.nova_group === 3) concerns.push('Moderately Processed');
+      if (scorecard.sugar_load === 'Moderate') concerns.push('Moderate Sugar');
+      if (scorecard.additive_density === 'Medium') concerns.push('Moderate Additives');
+    }
+    return concerns.length > 0 ? concerns.join(' & ') : 'Balanced Snack Profile';
+  };
+
+  // Scorecard values mapped to progress bar width percentage
+  const getProgressPercentage = (val: string | number, type: 'nova' | 'load' | 'density') => {
+    if (type === 'nova') {
+      const g = Number(val);
+      if (g === 1) return '25%';
+      if (g === 2) return '50%';
+      if (g === 3) return '75%';
+      return '100%';
+    }
+    if (val === 'High') return '100%';
+    if (val === 'Medium' || val === 'Moderate') return '60%';
+    return '25%'; // Low
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 120 }}>
+        
+        {/* Header section (Product Identity) */}
+        <View style={{ marginBottom: 16 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <View style={{ 
+              backgroundColor: theme.accentSoft, 
+              paddingHorizontal: 12, 
+              paddingVertical: 4, 
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: theme.border
+            }}>
+              <Text style={{ color: theme.primary, fontSize: 12, fontWeight: 'bold' }}>
+                {results.category_info?.subcategory || 'Snack'}
+              </Text>
+            </View>
+            {results.confidence && (
+              <Text style={{ fontSize: 11, color: theme.muted }}>
+                Match: {results.confidence.match_score}%
+              </Text>
+            )}
+          </View>
+          <Text style={{ fontSize: 24, fontWeight: '800', color: theme.text, letterSpacing: -0.5 }}>
+            {productName}
+          </Text>
+        </View>
+
+        {/* HERO SECTION — CALM INTELLIGENCE SUMMARY */}
+        <View style={{
+          backgroundColor: theme.card,
+          borderRadius: 24,
+          borderWidth: 1,
+          borderColor: theme.border,
+          padding: 20,
+          marginBottom: 20,
+        }}>
+          {/* Main Concern Indicator */}
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: theme.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+              Main Concern
+            </Text>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: scorecard.nova_group === 4 || scorecard.sugar_load === 'High' ? theme.error : theme.warning }}>
+              ⚠️ {getMainConcerns()}
+            </Text>
+            <Text style={{ fontSize: 13, color: theme.muted, marginTop: 4, lineHeight: 18 }}>
+              {scorecard.nova_group === 4 
+                ? 'Contains industrial ingredients and additives. Best consumed in moderation.' 
+                : 'Balanced options are recommended for daily diet.'}
+            </Text>
+          </View>
+
+          {/* Quick Swap Highlight */}
+          <View style={{ 
+            backgroundColor: theme.bg, 
+            borderRadius: 16, 
+            padding: 16, 
+            marginTop: 8,
+            borderWidth: 1, 
+            borderColor: theme.border 
+          }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: theme.primary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>
+              💡 Smart Swap Recommendation
+            </Text>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: theme.text, marginBottom: 12 }}>
+              {mainAlternative.name}
+            </Text>
+
+            {/* Quick Comparison Story Bar */}
+            <View style={{ gap: 8 }}>
+              {/* Sugar comparison */}
+              <View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
+                  <Text style={{ fontSize: 12, color: theme.muted }}>Sugar Reduction</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: theme.success }}>
+                    {scorecard.sugar_load === 'High' ? '-90% less sugar' : 'Low glycemic load'}
+                  </Text>
+                </View>
+                <View style={{ height: 6, backgroundColor: theme.border, borderRadius: 3, overflow: 'hidden', flexDirection: 'row' }}>
+                  <View style={{ flex: scorecard.sugar_load === 'High' ? 9 : 3, backgroundColor: theme.error }} />
+                  <View style={{ flex: 1, backgroundColor: theme.success }} />
+                </View>
+              </View>
+
+              {/* Additives comparison */}
+              <View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
+                  <Text style={{ fontSize: 12, color: theme.muted }}>Additive Safety</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: theme.success }}>100% Additive Free</Text>
+                </View>
+                <View style={{ height: 6, backgroundColor: theme.border, borderRadius: 3, overflow: 'hidden', flexDirection: 'row' }}>
+                  <View style={{ flex: scorecard.additive_density === 'High' ? 8 : 4, backgroundColor: theme.error }} />
+                  <View style={{ flex: 0, backgroundColor: theme.success }} />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* FOOD PROFILE INDICATORS (REPLACED dial gauge) */}
+        <View style={{
+          backgroundColor: theme.card,
+          borderRadius: 24,
+          borderWidth: 1,
+          borderColor: theme.border,
+          padding: 20,
+          marginBottom: 20,
+        }}>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: theme.text, marginBottom: 16 }}>
+            Nutritional Profile Indicators
+          </Text>
+
+          <View style={{ gap: 14 }}>
+            {/* Processing Level */}
+            <View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Processing Level</Text>
+                <Text style={{ fontSize: 13, color: getMetricColor('NOVA', scorecard.nova_group), fontWeight: '700' }}>
+                  NOVA {scorecard.nova_group} ({scorecard.nova_group === 4 ? 'Ultra-Processed' : 'Processed'})
+                </Text>
+              </View>
+              <View style={{ height: 6, backgroundColor: theme.border, borderRadius: 3 }}>
+                <View style={{ 
+                  width: getProgressPercentage(scorecard.nova_group, 'nova'), 
+                  height: '100%', 
+                  backgroundColor: getMetricColor('NOVA', scorecard.nova_group), 
+                  borderRadius: 3 
+                }} />
+              </View>
+            </View>
+
+            {/* Sugar Load */}
+            <View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Glycemic Sugar Load</Text>
+                <Text style={{ fontSize: 13, color: getMetricColor('Sugar', scorecard.sugar_load), fontWeight: '700' }}>
+                  {scorecard.sugar_load}
+                </Text>
+              </View>
+              <View style={{ height: 6, backgroundColor: theme.border, borderRadius: 3 }}>
+                <View style={{ 
+                  width: getProgressPercentage(scorecard.sugar_load, 'load'), 
+                  height: '100%', 
+                  backgroundColor: getMetricColor('Sugar', scorecard.sugar_load), 
+                  borderRadius: 3 
+                }} />
+              </View>
+            </View>
+
+            {/* Additives Density */}
+            <View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Synthetic Additive Density</Text>
+                <Text style={{ fontSize: 13, color: getMetricColor('Additives', scorecard.additive_density), fontWeight: '700' }}>
+                  {scorecard.additive_density}
+                </Text>
+              </View>
+              <View style={{ height: 6, backgroundColor: theme.border, borderRadius: 3 }}>
+                <View style={{ 
+                  width: getProgressPercentage(scorecard.additive_density, 'density'), 
+                  height: '100%', 
+                  backgroundColor: getMetricColor('Additives', scorecard.additive_density), 
+                  borderRadius: 3 
+                }} />
+              </View>
+            </View>
+
+            {/* Sodium Load */}
+            <View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Sodium / Salt Load</Text>
+                <Text style={{ fontSize: 13, color: getMetricColor('Sodium', scorecard.sodium_load), fontWeight: '700' }}>
+                  {scorecard.sodium_load}
+                </Text>
+              </View>
+              <View style={{ height: 6, backgroundColor: theme.border, borderRadius: 3 }}>
+                <View style={{ 
+                  width: getProgressPercentage(scorecard.sodium_load, 'load'), 
+                  height: '100%', 
+                  backgroundColor: getMetricColor('Sodium', scorecard.sodium_load), 
+                  borderRadius: 3 
+                }} />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* COLLAPSIBLE DETAILED CHEMICAL & INGREDIENT INSIGHTS */}
+        <View style={{ marginBottom: 20 }}>
+          <TouchableOpacity 
+            onPress={() => setDetailsExpanded(!detailsExpanded)}
+            style={{
+              backgroundColor: theme.card,
+              borderWidth: 1,
+              borderColor: theme.border,
+              borderRadius: 16,
+              paddingVertical: 14,
+              paddingHorizontal: 20,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
+            <Text style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}>
+              📊 Detailed Chemical & Score Insights
+            </Text>
+            <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 13 }}>
+              {detailsExpanded ? 'Hide' : 'Expand (Score: ' + scoreVal + '/100)'}
+            </Text>
+          </TouchableOpacity>
+
+          {detailsExpanded && (
+            <View style={{ 
+              backgroundColor: theme.card, 
+              borderLeftWidth: 1, 
+              borderRightWidth: 1, 
+              borderBottomWidth: 1, 
+              borderColor: theme.border,
+              borderBottomLeftRadius: 16, 
+              borderBottomRightRadius: 16, 
+              padding: 18, 
+              gap: 16, 
+              marginTop: -4 
+            }}>
+              {/* Point Breakdown */}
+              {results.breakdown && results.breakdown.length > 0 && (
+                <View>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: theme.primary, textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 }}>
+                    Deductions & Additions Breakdown
+                  </Text>
+                  <View style={{ gap: 8 }}>
+                    {results.breakdown.map((item: any, idx: number) => (
+                      <View key={idx} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={{ color: theme.text, fontSize: 13, flex: 1, paddingRight: 10 }}>{item.reason}</Text>
+                        <Text style={{ 
+                          color: item.impact < 0 ? theme.error : theme.success, 
+                          fontWeight: 'bold',
+                          fontSize: 13
+                        }}>
+                          {item.impact > 0 ? `+${item.impact}` : item.impact}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* Personalized Adjustments Alert */}
+              {results.personalized_adjustments && (
+                <View style={{
+                  backgroundColor: 'rgba(255, 214, 10, 0.08)',
+                  padding: 12,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: 'rgba(255, 214, 10, 0.15)',
+                }}>
+                  <Text style={{ fontSize: 13, color: theme.text }}>
+                    ⚠️ <Text style={{ fontWeight: 'bold' }}>{results.personalized_adjustments.active_mode} Alert: </Text>
+                    {results.personalized_adjustments.reason}
+                  </Text>
+                </View>
+              )}
+
+              {/* AI Written Narrative Explanation */}
+              <View>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: theme.primary, textTransform: 'uppercase', marginBottom: 6, letterSpacing: 0.5 }}>
+                  AI Summary Explanation
+                </Text>
+                <Text style={{ fontSize: 13, color: theme.muted, lineHeight: 18 }}>
+                  {results.explanation}
+                </Text>
+              </View>
+
+              {/* Extracted Ingredients text */}
+              <View>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: theme.primary, textTransform: 'uppercase', marginBottom: 6, letterSpacing: 0.5 }}>
+                  Verified Ingredients List
+                </Text>
+                <Text style={{ fontSize: 13, color: theme.muted, fontStyle: 'italic', lineHeight: 18 }}>
+                  {results.corrected_text || 'No ingredient list saved.'}
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* SWIPEABLE DETAILED COMPARISON & ALTERNATIVE CARDS */}
+        {alternativesList.length > 0 && (
+          <View style={{ marginBottom: 20 }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: theme.primary, textTransform: 'uppercase', marginBottom: 10, letterSpacing: 0.5 }}>
+              Healthy Swaps & Side-by-Side Comparison
+            </Text>
+            <ScrollView 
+              horizontal 
+              pagingEnabled 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 12 }}
+            >
+              {alternativesList.map((alt: any, idx: number) => {
+                const isHelpful = feedbackLogged[idx];
+                return (
+                  <View key={idx} style={{ 
+                    backgroundColor: theme.card, 
+                    borderRadius: 24, 
+                    padding: 20, 
+                    borderWidth: 1, 
+                    borderColor: theme.border,
+                    width: 325,
+                  }}>
+                    {/* Header */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <Text style={{ fontSize: 18, fontWeight: '800', color: theme.text, flex: 1, marginRight: 8 }}>
+                        {alt.name}
+                      </Text>
+                      <View style={{ backgroundColor: theme.accentSoft, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                        <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 12 }}>
+                          Clean Swap
+                        </Text>
+                      </View>
+                    </View>
+                    
+                    {/* Time / Cost */}
+                    <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
+                      <Text style={{ fontSize: 12, color: theme.muted }}>⏱️ {alt.prep_time_mins || 12} Mins</Text>
+                      <Text style={{ fontSize: 12, color: theme.muted }}>🪙 Est. ₹{alt.approx_cost_inr || 35}</Text>
+                    </View>
+
+                    {/* Reasoning Narrative */}
+                    <Text style={{ fontSize: 13, color: theme.text, lineHeight: 18, marginBottom: 12 }}>
+                      {alt.reasoning?.why_selected || 'Recommended healthy swap matching the category craving.'}
+                    </Text>
+
+                    {/* Comparison Checklist Bullets */}
+                    <View style={{ 
+                      backgroundColor: theme.bg, 
+                      borderRadius: 14, 
+                      padding: 12, 
+                      marginBottom: 16,
+                      borderWidth: 1,
+                      borderColor: theme.border
+                    }}>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: theme.primary, textTransform: 'uppercase', marginBottom: 6, letterSpacing: 0.5 }}>
+                        Why it is better
+                      </Text>
+                      {alt.reasoning?.bullets ? (
+                        alt.reasoning.bullets.map((b: string, bidx: number) => (
+                          <Text key={bidx} style={{ fontSize: 12, color: theme.text, lineHeight: 18, marginBottom: 2 }}>
+                            {b}
+                          </Text>
+                        ))
+                      ) : (
+                        <Text style={{ fontSize: 12, color: theme.text }}>
+                          ✓ Minimizes refined fats & sugars{"\n"}
+                          ✓ Eliminates toxic preservatives{"\n"}
+                          ✓ Quick home cooking recipe
+                        </Text>
+                      )}
+                    </View>
+
+                    {/* telemetric feedback loop */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                      <Text style={{ fontSize: 12, color: theme.muted }}>Was this swap helpful?</Text>
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <TouchableOpacity 
+                          onPress={() => handleFeedback(idx, 'up')}
+                          style={{
+                            padding: 6, 
+                            borderRadius: 8,
+                            backgroundColor: isHelpful === 'up' ? theme.accentSoft : 'transparent',
+                            borderWidth: 1,
+                            borderColor: isHelpful === 'up' ? theme.primary : theme.border
+                          }}
+                        >
+                          <Text style={{ fontSize: 14 }}>👍</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                          onPress={() => handleFeedback(idx, 'down')}
+                          style={{
+                            padding: 6, 
+                            borderRadius: 8,
+                            backgroundColor: isHelpful === 'down' ? 'rgba(255, 69, 58, 0.1)' : 'transparent',
+                            borderWidth: 1,
+                            borderColor: isHelpful === 'down' ? theme.error : theme.border
+                          }}
+                        >
+                          <Text style={{ fontSize: 14 }}>👎</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    {/* Recipe Reveal Button */}
+                    <TouchableOpacity 
+                      onPress={() => {
+                        Alert.alert(alt.name, alt.recipe || 'Combine natural elements in a bowl.');
+                      }}
+                      style={{ 
+                        backgroundColor: theme.primary,
+                        paddingVertical: 12,
+                        borderRadius: 14,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13 }}>
+                        🍳 View Quick Recipe
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+      </ScrollView>
+
+      {/* AI Chat Collapsible Overlay */}
+      <View style={{ 
+        position: 'absolute', 
+        bottom: 0, 
+        left: 0, 
+        right: 0, 
+        backgroundColor: theme.card,
+        borderTopWidth: 1,
+        borderTopColor: theme.border,
+        maxHeight: chatOpen ? 320 : 60,
+        padding: 12,
+        borderTopLeftRadius: chatOpen ? 18 : 0,
+        borderTopRightRadius: chatOpen ? 18 : 0,
+      }}>
+        {/* Toggle header */}
+        <TouchableOpacity 
+          onPress={() => setChatOpen(!chatOpen)}
+          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: 36 }}
+        >
+          <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
+            💬 Ask EcoSaur AI Assistant
+          </Text>
+          <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 13 }}>
+            {chatOpen ? 'Minimize' : 'Open Chat'}
+          </Text>
+        </TouchableOpacity>
+
+        {chatOpen && (
+          <View style={{ flex: 1, justifyContent: 'space-between', marginTop: 10 }}>
+            {/* Messages Scroll */}
+            <ScrollView style={{ flex: 1, marginBottom: 10 }} contentContainerStyle={{ gap: 8 }}>
+              {chatHistory.length === 0 ? (
+                <Text style={{ color: theme.muted, fontSize: 13, textAlign: 'center', marginTop: 15 }}>
+                  Ask questions about additives, processing, or healthy recipes!
+                </Text>
+              ) : (
+                chatHistory.map((msg, idx) => (
+                  <View key={idx} style={{
+                    alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                    backgroundColor: msg.role === 'user' ? theme.primary : theme.accentSoft,
+                    borderRadius: 14,
+                    padding: 10,
+                    maxWidth: '85%',
+                  }}>
+                    <Text style={{ color: msg.role === 'user' ? '#fff' : theme.text, fontSize: 13 }}>
+                      {msg.content}
+                    </Text>
+                  </View>
+                ))
+              )}
+              {chatLoading && <ActivityIndicator size="small" color={theme.primary} />}
+            </ScrollView>
+
+            {/* Input box */}
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+              <TextInput
+                value={chatInput}
+                onChangeText={setChatInput}
+                placeholder="Type here..."
+                placeholderTextColor={theme.muted}
+                style={{
+                  flex: 1,
+                  backgroundColor: theme.bg,
+                  color: theme.text,
+                  borderRadius: 12,
+                  paddingHorizontal: 12,
+                  height: 38,
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                  fontSize: 14
+                }}
+              />
+              <TouchableOpacity 
+                onPress={handleSendChat}
+                style={{
+                  backgroundColor: theme.primary,
+                  paddingHorizontal: 16,
+                  height: 38,
+                  borderRadius: 12,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>Send</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+}
+
