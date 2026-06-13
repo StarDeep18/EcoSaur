@@ -56,14 +56,14 @@ export default function RootLayout() {
             <Stack.Screen 
               name="correction" 
               options={{ 
-                title: 'Verify Ingredients',
+                title: 'Review Ingredients',
                 headerBackTitle: 'Cancel',
               }} 
             />
             <Stack.Screen 
               name="results" 
               options={{ 
-                title: 'Nutritional Review',
+                title: 'Shopping Guide',
                 headerBackTitle: 'Edit',
               }} 
             />

@@ -52,25 +52,71 @@ export default function ResultsScreen() {
 
   // Chat states
   const [chatOpen, setChatOpen] = useState(false);
+  const [sheetVisible, setSheetVisible] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
 
   const chatScrollRef = useRef<ScrollView>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const sheetAnim = useRef(new Animated.Value(0)).current;
 
-  // Gentle pulse breathing animation loop
+  // Assistant sheet animations interpolations
+  const backdropOpacity = sheetAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.5],
+  });
+
+  const sheetTranslateY = sheetAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [600, 0],
+  });
+
+  const fabScale = sheetAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+  });
+
+  const fabOpacity = sheetAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [1, 0, 0],
+  });
+
+  const finalScale = Animated.multiply(pulseAnim, fabScale);
+
+  // Sync sheet visibility and spring transitions
+  useEffect(() => {
+    if (chatOpen) {
+      setSheetVisible(true);
+      Animated.spring(sheetAnim, {
+        toValue: 1,
+        tension: 40,
+        friction: 8,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(sheetAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }).start(() => {
+        setSheetVisible(false);
+      });
+    }
+  }, [chatOpen]);
+
+  // Gentle pulse breathing animation loop (subtle 9-second loop)
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.08,
-          duration: 2500,
+          toValue: 1.03,
+          duration: 4500,
           useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
           toValue: 1.0,
-          duration: 2500,
+          duration: 4500,
           useNativeDriver: true,
         })
       ])
@@ -310,7 +356,7 @@ export default function ResultsScreen() {
             }}
           >
             <Text style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}>
-              📊 Ingredient & Processing Insights
+              📊 Ingredient Insights
             </Text>
             <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 13 }}>
               {detailsExpanded ? 'Hide' : 'Expand Insights'}
@@ -339,7 +385,7 @@ export default function ResultsScreen() {
                   {/* Processing Level */}
                   <View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Processing Level</Text>
+                      <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Processing Intensity</Text>
                       <Text style={{ fontSize: 13, color: getMetricColor('NOVA', scorecard.nova_group), fontWeight: '700' }}>
                         NOVA {scorecard.nova_group} ({scorecard.nova_group === 4 ? 'Ultra-Processed' : 'Processed'})
                       </Text>
@@ -375,7 +421,7 @@ export default function ResultsScreen() {
                   {/* Additive Density */}
                   <View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Synthetic Additive Density</Text>
+                      <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Additive Density</Text>
                       <Text style={{ fontSize: 13, color: getMetricColor('Additives', scorecard.additive_density), fontWeight: '700' }}>
                         {scorecard.additive_density}
                       </Text>
@@ -393,7 +439,7 @@ export default function ResultsScreen() {
                   {/* Sodium Load */}
                   <View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Sodium / Salt Load</Text>
+                      <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Sodium / Salt</Text>
                       <Text style={{ fontSize: 13, color: getMetricColor('Sodium', scorecard.sodium_load), fontWeight: '700' }}>
                         {scorecard.sodium_load}
                       </Text>
@@ -664,52 +710,65 @@ export default function ResultsScreen() {
       </ScrollView>
 
       {/* Floating Assistant Button */}
-      {!chatOpen && (
-        <Animated.View style={{
+      <Animated.View 
+        pointerEvents={chatOpen ? 'none' : 'auto'}
+        style={{
           position: 'absolute',
           bottom: 24,
           right: 24,
-          transform: [{ scale: pulseAnim }],
+          transform: [{ scale: finalScale }],
+          opacity: fabOpacity,
           shadowColor: theme.primary,
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
           shadowRadius: 8,
           elevation: 6,
-        }}>
-          <TouchableOpacity
-            onPress={() => setChatOpen(true)}
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 28,
-              backgroundColor: theme.primary,
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderWidth: 1.5,
-              borderColor: theme.primaryLight,
-            }}
-          >
-            <Text style={{ fontSize: 26 }}>🦕</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      )}
+          zIndex: 999,
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => setChatOpen(true)}
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            backgroundColor: theme.primary,
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderWidth: 1.5,
+            borderColor: theme.primaryLight,
+          }}
+        >
+          <Text style={{ fontSize: 26 }}>🦕</Text>
+        </TouchableOpacity>
+      </Animated.View>
 
       {/* Elegant Assistant Bottom-Sheet Overlay */}
-      {chatOpen && (
+      {sheetVisible && (
         <View style={{
           ...StyleSheet.absoluteFillObject,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          justifyContent: 'flex-end',
           zIndex: 1000,
         }}>
           {/* Backdrop Dismiss Trigger */}
-          <TouchableOpacity 
-            style={StyleSheet.absoluteFillObject} 
-            activeOpacity={1} 
-            onPress={() => setChatOpen(false)} 
-          />
+          <Animated.View style={[
+            StyleSheet.absoluteFillObject,
+            {
+              backgroundColor: '#000000',
+              opacity: backdropOpacity,
+            }
+          ]}>
+            <TouchableOpacity 
+              style={StyleSheet.absoluteFillObject} 
+              activeOpacity={1} 
+              onPress={() => setChatOpen(false)} 
+            />
+          </Animated.View>
           
-          <View style={{
+          <Animated.View style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
             backgroundColor: theme.card,
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
@@ -719,6 +778,7 @@ export default function ResultsScreen() {
             padding: 20,
             maxHeight: '75%',
             minHeight: 400,
+            transform: [{ translateY: sheetTranslateY }],
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -4 },
             shadowOpacity: 0.15,
@@ -871,7 +931,7 @@ export default function ResultsScreen() {
                 <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 15 }}>➔</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Animated.View>
         </View>
       )}
     </View>

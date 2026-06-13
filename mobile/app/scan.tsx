@@ -215,7 +215,7 @@ export default function ScanScreen() {
 
           {/* Central scanner box */}
           <View style={styles.viewfinderContainer}>
-            <View style={[styles.viewfinderBox, { borderColor: theme.primary }]}>
+            <View style={styles.viewfinderBox}>
               {/* Scan Beam */}
               <Animated.View style={[
                 styles.scanBeam, 
@@ -325,45 +325,49 @@ const styles = StyleSheet.create({
   viewfinderBox: {
     width: 280,
     height: 250,
-    borderWidth: 1,
+    borderWidth: 0.8,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     position: 'relative',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderRadius: 12,
   },
   scanBeam: {
-    height: 3,
+    height: 2.5,
     width: '100%',
     shadowColor: '#10B981',
-    shadowOpacity: 0.8,
-    shadowRadius: 5,
-    elevation: 4,
+    shadowOpacity: 1.0,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 6,
   },
   corner: {
     position: 'absolute',
     width: 20,
     height: 20,
-    borderWidth: 3,
+    borderWidth: 1.5,
+    borderRadius: 4,
   },
   topLeft: {
-    top: -3,
-    left: -3,
+    top: -1,
+    left: -1,
     borderBottomWidth: 0,
     borderRightWidth: 0,
   },
   topRight: {
-    top: -3,
-    right: -3,
+    top: -1,
+    right: -1,
     borderBottomWidth: 0,
     borderLeftWidth: 0,
   },
   bottomLeft: {
-    bottom: -3,
-    left: -3,
+    bottom: -1,
+    left: -1,
     borderTopWidth: 0,
     borderRightWidth: 0,
   },
   bottomRight: {
-    bottom: -3,
-    right: -3,
+    bottom: -1,
+    right: -1,
     borderTopWidth: 0,
     borderLeftWidth: 0,
   },

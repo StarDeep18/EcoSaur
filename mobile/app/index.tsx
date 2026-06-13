@@ -210,30 +210,30 @@ export default function WelcomeScreen() {
           {currentStep === 3 && (
             <View style={{ alignItems: 'center', width: '100%' }}>
               <View style={{
-                width: 75,
-                height: 75,
-                borderRadius: 37.5,
+                width: 70,
+                height: 70,
+                borderRadius: 35,
                 backgroundColor: theme.accentSoft,
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: 20,
+                marginBottom: 16,
               }}>
-                <Text style={{ fontSize: 40 }}>🎯</Text>
+                <Text style={{ fontSize: 36 }}>🎯</Text>
               </View>
-              <Text style={{ fontSize: 24, fontWeight: '800', color: theme.text, textAlign: 'center', marginBottom: 8, letterSpacing: -0.3 }}>
-                Choose your Focus Goal
+              <Text style={{ fontSize: 24, fontWeight: '800', color: theme.text, textAlign: 'center', marginBottom: 8, letterSpacing: -0.4 }}>
+                Select your wellness focus
               </Text>
-              <Text style={{ fontSize: 14, color: theme.muted, textAlign: 'center', marginBottom: 20, paddingHorizontal: 16, lineHeight: 18 }}>
-                EcoSaur adjusts evaluations & indicators to match your selected dietary preference.
+              <Text style={{ fontSize: 14, color: theme.muted, textAlign: 'center', marginBottom: 24, paddingHorizontal: 20, lineHeight: 20 }}>
+                Let's tailor EcoSaur to your lifestyle. We will adapt ingredient highlights and swap suggestions to match your personal focus.
               </Text>
               
-              <View style={{ width: '100%', gap: 8 }}>
+              <View style={{ width: '100%', gap: 12 }}>
                 {[
-                  { mode: 'General', icon: '🌿', title: 'General Wellness', desc: 'Standard analysis' },
-                  { mode: 'Gym/Fitness', icon: '💪', title: 'Fitness & Gym', desc: 'Focuses on protein content' },
-                  { mode: 'Weight Loss', icon: '🏃', title: 'Weight Management', desc: 'Highlights lower calories & fats' },
-                  { mode: 'Diabetic Friendly', icon: '🩸', title: 'Diabetic Friendly', desc: 'Flags added sugars & glycemic loads' },
-                  { mode: 'Child Friendly', icon: '👶', title: 'Child Friendly', desc: 'Flags synthetic colors & preservatives' },
+                  { mode: 'General', icon: '🌿', title: 'General Wellness', desc: 'A well-rounded, balanced daily wellness approach' },
+                  { mode: 'Gym/Fitness', icon: '💪', title: 'Fitness & Gym', desc: 'Prioritizes clean protein content and active recovery' },
+                  { mode: 'Weight Loss', icon: '🏃', title: 'Weight Management', desc: 'Highlights lighter, lower-calorie options to support your goals' },
+                  { mode: 'Diabetic Friendly', icon: '🩸', title: 'Diabetic Friendly', desc: 'Monitors added sugars, artificial sweeteners, and glycemic loads' },
+                  { mode: 'Child Friendly', icon: '👶', title: 'Child Friendly', desc: 'Flags artificial dyes, synthetic colors, and heavy preservatives' },
                 ].map((item) => {
                   const isSelected = selectedMode === item.mode;
                   return (
@@ -242,29 +242,29 @@ export default function WelcomeScreen() {
                       onPress={() => setSelectedMode(item.mode)}
                       style={{
                         backgroundColor: isSelected ? theme.accentSoft : theme.card,
-                        borderWidth: 1.5,
+                        borderWidth: 1,
                         borderColor: isSelected ? theme.primary : theme.border,
-                        borderRadius: 14,
-                        paddingVertical: 10,
-                        paddingHorizontal: 14,
+                        borderRadius: 16,
+                        paddingVertical: 14,
+                        paddingHorizontal: 18,
                         flexDirection: 'row',
                         alignItems: 'center',
-                        gap: 12,
+                        gap: 14,
                       }}
                     >
-                      <Text style={{ fontSize: 22 }}>{item.icon}</Text>
+                      <Text style={{ fontSize: 24 }}>{item.icon}</Text>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? theme.primary : theme.text }}>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: isSelected ? theme.primary : theme.text }}>
                           {item.title}
                         </Text>
-                        <Text style={{ fontSize: 11, color: theme.muted }}>
+                        <Text style={{ fontSize: 12, color: theme.muted, marginTop: 2, lineHeight: 16 }}>
                           {item.desc}
                         </Text>
                       </View>
                       <View style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: 9,
+                        width: 20,
+                        height: 20,
+                        borderRadius: 10,
                         borderWidth: 1.5,
                         borderColor: isSelected ? theme.primary : theme.border,
                         justifyContent: 'center',

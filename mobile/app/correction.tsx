@@ -119,8 +119,8 @@ export default function CorrectionScreen() {
           </View>
         </View>
       )}
-      <Text style={{ fontSize: 14, color: theme.muted, marginBottom: 20 }}>
-        Ensure the ingredient list below matches the food package. Click highlighted words in amber to select corrections.
+      <Text style={{ fontSize: 14, color: theme.muted, marginBottom: 20, lineHeight: 20 }}>
+        We've extracted the ingredients. Tap any highlighted words in amber to select spelling suggestions, or double-check and edit the text manually.
       </Text>
 
       {/* Product Name Input */}
@@ -280,7 +280,7 @@ export default function CorrectionScreen() {
           }}
         >
           <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
-            🔍 Analyze Scanned Product
+            ✨ Review Ingredients
           </Text>
         </TouchableOpacity>
       )}
