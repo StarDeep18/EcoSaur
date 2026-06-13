@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, useColorScheme, ScrollView, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, useColorScheme, ScrollView, Animated, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { THEME } from '../theme';
+import { api } from '../services/api';
 
 export default function WelcomeScreen() {
   const colorScheme = useColorScheme() ?? 'dark';
@@ -11,9 +12,22 @@ export default function WelcomeScreen() {
   const router = useRouter();
   
   const [currentStep, setCurrentStep] = useState(0);
-  const totalSteps = 4;
+  const totalSteps = 5;
+  const [selectedMode, setSelectedMode] = useState('General');
+  const [savingMode, setSavingMode] = useState(false);
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    if (currentStep === 3) {
+      setSavingMode(true);
+      try {
+        await api.updateUserPreferences(selectedMode);
+      } catch (err) {
+        console.warn('Failed to save user preference focus mode:', err);
+      } finally {
+        setSavingMode(false);
+      }
+    }
+    
     if (currentStep < totalSteps - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
@@ -85,7 +99,7 @@ export default function WelcomeScreen() {
                 letterSpacing: -0.5,
                 lineHeight: 38
               }}>
-                Scan food.{"\n"}Understand instantly.{"\n"}Choose smarter.
+                Meet EcoSaur,{"\n"}your friendly shopping partner.
               </Text>
               <Text style={{
                 fontSize: 15,
@@ -188,12 +202,91 @@ export default function WelcomeScreen() {
                 Craving-Matched Swaps
               </Text>
               <Text style={{ fontSize: 15, color: theme.muted, textAlign: 'center', paddingHorizontal: 20, lineHeight: 22 }}>
-                Instead of empty calories, we suggest traditional, accessible Indian snacks and drinks matching the convenience and taste profile.
+                Instead of empty calories, we suggest traditional, accessible Indian snacks and drinks matching the craving profile.
               </Text>
             </View>
           )}
 
           {currentStep === 3 && (
+            <View style={{ alignItems: 'center', width: '100%' }}>
+              <View style={{
+                width: 75,
+                height: 75,
+                borderRadius: 37.5,
+                backgroundColor: theme.accentSoft,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 20,
+              }}>
+                <Text style={{ fontSize: 40 }}>🎯</Text>
+              </View>
+              <Text style={{ fontSize: 24, fontWeight: '800', color: theme.text, textAlign: 'center', marginBottom: 8, letterSpacing: -0.3 }}>
+                Choose your Focus Goal
+              </Text>
+              <Text style={{ fontSize: 14, color: theme.muted, textAlign: 'center', marginBottom: 20, paddingHorizontal: 16, lineHeight: 18 }}>
+                EcoSaur adjusts evaluations & indicators to match your selected dietary preference.
+              </Text>
+              
+              <View style={{ width: '100%', gap: 8 }}>
+                {[
+                  { mode: 'General', icon: '🌿', title: 'General Wellness', desc: 'Standard analysis' },
+                  { mode: 'Gym/Fitness', icon: '💪', title: 'Fitness & Gym', desc: 'Focuses on protein content' },
+                  { mode: 'Weight Loss', icon: '🏃', title: 'Weight Management', desc: 'Highlights lower calories & fats' },
+                  { mode: 'Diabetic Friendly', icon: '🩸', title: 'Diabetic Friendly', desc: 'Flags added sugars & glycemic loads' },
+                  { mode: 'Child Friendly', icon: '👶', title: 'Child Friendly', desc: 'Flags synthetic colors & preservatives' },
+                ].map((item) => {
+                  const isSelected = selectedMode === item.mode;
+                  return (
+                    <TouchableOpacity
+                      key={item.mode}
+                      onPress={() => setSelectedMode(item.mode)}
+                      style={{
+                        backgroundColor: isSelected ? theme.accentSoft : theme.card,
+                        borderWidth: 1.5,
+                        borderColor: isSelected ? theme.primary : theme.border,
+                        borderRadius: 14,
+                        paddingVertical: 10,
+                        paddingHorizontal: 14,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 12,
+                      }}
+                    >
+                      <Text style={{ fontSize: 22 }}>{item.icon}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? theme.primary : theme.text }}>
+                          {item.title}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: theme.muted }}>
+                          {item.desc}
+                        </Text>
+                      </View>
+                      <View style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: 9,
+                        borderWidth: 1.5,
+                        borderColor: isSelected ? theme.primary : theme.border,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}>
+                        {isSelected && (
+                          <View style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: 5,
+                            backgroundColor: theme.primary,
+                          }} />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
+          {currentStep === 4 && (
             <View style={{ alignItems: 'center' }}>
               <View style={{
                 width: 90,
@@ -204,13 +297,13 @@ export default function WelcomeScreen() {
                 justifyContent: 'center',
                 marginBottom: 28,
               }}>
-                <Text style={{ fontSize: 44 }}>✨</Text>
+                <Text style={{ fontSize: 50 }}>🦖</Text>
               </View>
               <Text style={{ fontSize: 24, fontWeight: '800', color: theme.text, textAlign: 'center', marginBottom: 12 }}>
                 Ready to shop smarter?
               </Text>
               <Text style={{ fontSize: 15, color: theme.muted, textAlign: 'center', paddingHorizontal: 20, lineHeight: 22 }}>
-                No anxiety, no brand bashing. Just honest, clear explanations of what goes into your shopping cart.
+                No anxiety, no brand bashing. Just honest, clear explanations and healthy swaps matching your mode: <Text style={{ fontWeight: 'bold', color: theme.primary }}>{selectedMode}</Text>.
               </Text>
             </View>
           )}

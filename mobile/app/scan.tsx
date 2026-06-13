@@ -105,6 +105,21 @@ export default function ScanScreen() {
   const handleBarcodeScanned = async ({ data }: { data: string }) => {
     if (scanned || loading) return;
     
+    // Check local analysis cache first for instant results
+    if (api.barcodeAnalysisCache[data]) {
+      Vibration.vibrate([0, 15, 10, 15]);
+      setScanned(true);
+      const cachedResult = api.barcodeAnalysisCache[data];
+      router.push({
+        pathname: '/results',
+        params: {
+          resultsPayload: JSON.stringify(cachedResult),
+          productName: cachedResult.product_name || 'Scanned Product',
+        }
+      });
+      return;
+    }
+
     // Check local duplicate cache
     if (scanCache.current[data]) {
       Vibration.vibrate(25);
@@ -216,16 +231,30 @@ export default function ScanScreen() {
           {/* Bottom capturing action buttons */}
           <View style={styles.bottomContainer}>
             {loading ? (
-              <View style={{ alignItems: 'center', gap: 10 }}>
-                <ActivityIndicator size="large" color="#ffffff" />
+              <View style={{ 
+                alignItems: 'center', 
+                gap: 12,
+                backgroundColor: 'rgba(22, 22, 24, 0.85)',
+                paddingVertical: 18,
+                paddingHorizontal: 28,
+                borderRadius: 24,
+                borderWidth: 1,
+                borderColor: theme.border,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.2,
+                shadowRadius: 8,
+                elevation: 4
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <ActivityIndicator size="small" color={theme.primary} />
+                  <Text style={{ fontSize: 24 }}>🦕</Text>
+                </View>
                 <Text style={{
-                  color: '#ffffff',
-                  fontSize: 13,
+                  color: theme.text,
+                  fontSize: 14,
                   fontWeight: '600',
-                  backgroundColor: 'rgba(0,0,0,0.6)',
-                  paddingVertical: 6,
-                  paddingHorizontal: 16,
-                  borderRadius: 12
+                  textAlign: 'center',
                 }}>
                   {loadingStatus}
                 </Text>
