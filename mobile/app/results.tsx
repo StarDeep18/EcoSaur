@@ -79,7 +79,7 @@ export default function ResultsScreen() {
   const handleFeedback = (idx: number, type: 'up' | 'down') => {
     setFeedbackLogged(prev => ({ ...prev, [idx]: type }));
     // In background, log feedback to crowdsourced loops
-    Alert.alert('Feedback Registered', 'Thank you! This helps optimize EcoSaur alternatives.');
+    Alert.alert('🦖 EcoSaur Mascot', 'Thank you! Your feedback helps us improve healthy swaps for the whole community.');
   };
 
   // Helper to extract main concern
@@ -132,8 +132,8 @@ export default function ResultsScreen() {
               </Text>
             </View>
             {results.confidence && (
-              <Text style={{ fontSize: 11, color: theme.muted }}>
-                Match: {results.confidence.match_score}%
+              <Text style={{ fontSize: 11, color: theme.muted, fontWeight: '500' }}>
+                ✓ {results.confidence.match_score}% Label Verified
               </Text>
             )}
           </View>
@@ -156,13 +156,13 @@ export default function ResultsScreen() {
             <Text style={{ fontSize: 12, fontWeight: '600', color: theme.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
               Main Concern
             </Text>
-            <Text style={{ fontSize: 18, fontWeight: '700', color: scorecard.nova_group === 4 || scorecard.sugar_load === 'High' ? theme.error : theme.warning }}>
-              ⚠️ {getMainConcerns()}
+            <Text style={{ fontSize: 18, fontWeight: '700', color: scorecard.nova_group === 4 || scorecard.sugar_load === 'High' ? '#F43F5E' : '#F59E0B' }}>
+              {getMainConcerns()}
             </Text>
             <Text style={{ fontSize: 13, color: theme.muted, marginTop: 4, lineHeight: 18 }}>
               {scorecard.nova_group === 4 
-                ? 'Contains industrial ingredients and additives. Best consumed in moderation.' 
-                : 'Balanced options are recommended for daily diet.'}
+                ? 'Contains industrial ingredients and additives. Portion monitoring is recommended.' 
+                : 'A balanced snack profile matching standard daily wellness guidelines.'}
             </Text>
           </View>
 
@@ -188,13 +188,13 @@ export default function ResultsScreen() {
               <View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
                   <Text style={{ fontSize: 12, color: theme.muted }}>Sugar Reduction</Text>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: theme.success }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#10B981' }}>
                     {scorecard.sugar_load === 'High' ? '-90% less sugar' : 'Low glycemic load'}
                   </Text>
                 </View>
-                <View style={{ height: 6, backgroundColor: theme.border, borderRadius: 3, overflow: 'hidden', flexDirection: 'row' }}>
-                  <View style={{ flex: scorecard.sugar_load === 'High' ? 9 : 3, backgroundColor: theme.error }} />
-                  <View style={{ flex: 1, backgroundColor: theme.success }} />
+                <View style={{ height: 5, backgroundColor: theme.border, borderRadius: 2.5, overflow: 'hidden', flexDirection: 'row' }}>
+                  <View style={{ flex: scorecard.sugar_load === 'High' ? 9 : 3, backgroundColor: '#F43F5E' }} />
+                  <View style={{ flex: 1, backgroundColor: '#10B981' }} />
                 </View>
               </View>
 
@@ -202,100 +202,12 @@ export default function ResultsScreen() {
               <View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
                   <Text style={{ fontSize: 12, color: theme.muted }}>Additive Safety</Text>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: theme.success }}>100% Additive Free</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#10B981' }}>100% Additive Free</Text>
                 </View>
-                <View style={{ height: 6, backgroundColor: theme.border, borderRadius: 3, overflow: 'hidden', flexDirection: 'row' }}>
-                  <View style={{ flex: scorecard.additive_density === 'High' ? 8 : 4, backgroundColor: theme.error }} />
-                  <View style={{ flex: 0, backgroundColor: theme.success }} />
+                <View style={{ height: 5, backgroundColor: theme.border, borderRadius: 2.5, overflow: 'hidden', flexDirection: 'row' }}>
+                  <View style={{ flex: scorecard.additive_density === 'High' ? 8 : 4, backgroundColor: '#F43F5E' }} />
+                  <View style={{ flex: 0, backgroundColor: '#10B981' }} />
                 </View>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* FOOD PROFILE INDICATORS (REPLACED dial gauge) */}
-        <View style={{
-          backgroundColor: theme.card,
-          borderRadius: 24,
-          borderWidth: 1,
-          borderColor: theme.border,
-          padding: 20,
-          marginBottom: 20,
-        }}>
-          <Text style={{ fontSize: 14, fontWeight: '700', color: theme.text, marginBottom: 16 }}>
-            Nutritional Profile Indicators
-          </Text>
-
-          <View style={{ gap: 14 }}>
-            {/* Processing Level */}
-            <View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-                <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Processing Level</Text>
-                <Text style={{ fontSize: 13, color: getMetricColor('NOVA', scorecard.nova_group), fontWeight: '700' }}>
-                  NOVA {scorecard.nova_group} ({scorecard.nova_group === 4 ? 'Ultra-Processed' : 'Processed'})
-                </Text>
-              </View>
-              <View style={{ height: 6, backgroundColor: theme.border, borderRadius: 3 }}>
-                <View style={{ 
-                  width: getProgressPercentage(scorecard.nova_group, 'nova'), 
-                  height: '100%', 
-                  backgroundColor: getMetricColor('NOVA', scorecard.nova_group), 
-                  borderRadius: 3 
-                }} />
-              </View>
-            </View>
-
-            {/* Sugar Load */}
-            <View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-                <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Glycemic Sugar Load</Text>
-                <Text style={{ fontSize: 13, color: getMetricColor('Sugar', scorecard.sugar_load), fontWeight: '700' }}>
-                  {scorecard.sugar_load}
-                </Text>
-              </View>
-              <View style={{ height: 6, backgroundColor: theme.border, borderRadius: 3 }}>
-                <View style={{ 
-                  width: getProgressPercentage(scorecard.sugar_load, 'load'), 
-                  height: '100%', 
-                  backgroundColor: getMetricColor('Sugar', scorecard.sugar_load), 
-                  borderRadius: 3 
-                }} />
-              </View>
-            </View>
-
-            {/* Additives Density */}
-            <View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-                <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Synthetic Additive Density</Text>
-                <Text style={{ fontSize: 13, color: getMetricColor('Additives', scorecard.additive_density), fontWeight: '700' }}>
-                  {scorecard.additive_density}
-                </Text>
-              </View>
-              <View style={{ height: 6, backgroundColor: theme.border, borderRadius: 3 }}>
-                <View style={{ 
-                  width: getProgressPercentage(scorecard.additive_density, 'density'), 
-                  height: '100%', 
-                  backgroundColor: getMetricColor('Additives', scorecard.additive_density), 
-                  borderRadius: 3 
-                }} />
-              </View>
-            </View>
-
-            {/* Sodium Load */}
-            <View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-                <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Sodium / Salt Load</Text>
-                <Text style={{ fontSize: 13, color: getMetricColor('Sodium', scorecard.sodium_load), fontWeight: '700' }}>
-                  {scorecard.sodium_load}
-                </Text>
-              </View>
-              <View style={{ height: 6, backgroundColor: theme.border, borderRadius: 3 }}>
-                <View style={{ 
-                  width: getProgressPercentage(scorecard.sodium_load, 'load'), 
-                  height: '100%', 
-                  backgroundColor: getMetricColor('Sodium', scorecard.sodium_load), 
-                  borderRadius: 3 
-                }} />
               </View>
             </View>
           </View>
@@ -318,10 +230,10 @@ export default function ResultsScreen() {
             }}
           >
             <Text style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}>
-              📊 Detailed Chemical & Score Insights
+              📊 Ingredient & Processing Insights
             </Text>
             <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 13 }}>
-              {detailsExpanded ? 'Hide' : 'Expand (Score: ' + scoreVal + '/100)'}
+              {detailsExpanded ? 'Hide' : 'Expand Insights'}
             </Text>
           </TouchableOpacity>
 
@@ -335,9 +247,111 @@ export default function ResultsScreen() {
               borderBottomLeftRadius: 16, 
               borderBottomRightRadius: 16, 
               padding: 18, 
-              gap: 16, 
+              gap: 20, 
               marginTop: -4 
             }}>
+              {/* Food Profile Indicators */}
+              <View>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: theme.primary, textTransform: 'uppercase', marginBottom: 12, letterSpacing: 0.5 }}>
+                  Nutritional Profile Indicators
+                </Text>
+                <View style={{ gap: 12 }}>
+                  {/* Processing Level */}
+                  <View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Processing Level</Text>
+                      <Text style={{ fontSize: 13, color: getMetricColor('NOVA', scorecard.nova_group), fontWeight: '700' }}>
+                        NOVA {scorecard.nova_group} ({scorecard.nova_group === 4 ? 'Ultra-Processed' : 'Processed'})
+                      </Text>
+                    </View>
+                    <View style={{ height: 5, backgroundColor: theme.border, borderRadius: 2.5 }}>
+                      <View style={{ 
+                        width: getProgressPercentage(scorecard.nova_group, 'nova'), 
+                        height: '100%', 
+                        backgroundColor: getMetricColor('NOVA', scorecard.nova_group), 
+                        borderRadius: 2.5 
+                      }} />
+                    </View>
+                  </View>
+
+                  {/* Sugar Load */}
+                  <View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Sugar Load</Text>
+                      <Text style={{ fontSize: 13, color: getMetricColor('Sugar', scorecard.sugar_load), fontWeight: '700' }}>
+                        {scorecard.sugar_load}
+                      </Text>
+                    </View>
+                    <View style={{ height: 5, backgroundColor: theme.border, borderRadius: 2.5 }}>
+                      <View style={{ 
+                        width: getProgressPercentage(scorecard.sugar_load, 'load'), 
+                        height: '100%', 
+                        backgroundColor: getMetricColor('Sugar', scorecard.sugar_load), 
+                        borderRadius: 2.5 
+                      }} />
+                    </View>
+                  </View>
+
+                  {/* Additive Density */}
+                  <View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Synthetic Additive Density</Text>
+                      <Text style={{ fontSize: 13, color: getMetricColor('Additives', scorecard.additive_density), fontWeight: '700' }}>
+                        {scorecard.additive_density}
+                      </Text>
+                    </View>
+                    <View style={{ height: 5, backgroundColor: theme.border, borderRadius: 2.5 }}>
+                      <View style={{ 
+                        width: getProgressPercentage(scorecard.additive_density, 'density'), 
+                        height: '100%', 
+                        backgroundColor: getMetricColor('Additives', scorecard.additive_density), 
+                        borderRadius: 2.5 
+                      }} />
+                    </View>
+                  </View>
+
+                  {/* Sodium Load */}
+                  <View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Sodium / Salt Load</Text>
+                      <Text style={{ fontSize: 13, color: getMetricColor('Sodium', scorecard.sodium_load), fontWeight: '700' }}>
+                        {scorecard.sodium_load}
+                      </Text>
+                    </View>
+                    <View style={{ height: 5, backgroundColor: theme.border, borderRadius: 2.5 }}>
+                      <View style={{ 
+                        width: getProgressPercentage(scorecard.sodium_load, 'load'), 
+                        height: '100%', 
+                        backgroundColor: getMetricColor('Sodium', scorecard.sodium_load), 
+                        borderRadius: 2.5 
+                      }} />
+                    </View>
+                  </View>
+
+                  {/* Ingredient Transparency */}
+                  <View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>Ingredient Transparency</Text>
+                      <Text style={{ 
+                        fontSize: 13, 
+                        color: scorecard.transparency_index === 'High' ? theme.success : scorecard.transparency_index === 'Medium' ? theme.warning : theme.error, 
+                        fontWeight: '700' 
+                      }}>
+                        {scorecard.transparency_index || 'High'}
+                      </Text>
+                    </View>
+                    <View style={{ height: 5, backgroundColor: theme.border, borderRadius: 2.5 }}>
+                      <View style={{ 
+                        width: getProgressPercentage(scorecard.transparency_index || 'High', 'load'), 
+                        height: '100%', 
+                        backgroundColor: scorecard.transparency_index === 'High' ? theme.success : scorecard.transparency_index === 'Medium' ? theme.warning : theme.error, 
+                        borderRadius: 2.5 
+                      }} />
+                    </View>
+                  </View>
+                </View>
+              </View>
+
               {/* Point Breakdown */}
               {results.breakdown && results.breakdown.length > 0 && (
                 <View>
@@ -364,14 +378,14 @@ export default function ResultsScreen() {
               {/* Personalized Adjustments Alert */}
               {results.personalized_adjustments && (
                 <View style={{
-                  backgroundColor: 'rgba(255, 214, 10, 0.08)',
+                  backgroundColor: 'rgba(255, 214, 10, 0.06)',
                   padding: 12,
                   borderRadius: 12,
                   borderWidth: 1,
                   borderColor: 'rgba(255, 214, 10, 0.15)',
                 }}>
                   <Text style={{ fontSize: 13, color: theme.text }}>
-                    ⚠️ <Text style={{ fontWeight: 'bold' }}>{results.personalized_adjustments.active_mode} Alert: </Text>
+                    ⚠️ <Text style={{ fontWeight: 'bold' }}>{results.personalized_adjustments.active_mode} Mode: </Text>
                     {results.personalized_adjustments.reason}
                   </Text>
                 </View>
@@ -414,6 +428,19 @@ export default function ResultsScreen() {
             >
               {alternativesList.map((alt: any, idx: number) => {
                 const isHelpful = feedbackLogged[idx];
+                
+                // Helper to get craving tags
+                const getCravingTag = (categoryName: string, name: string) => {
+                  const query = ((categoryName || '') + ' ' + (name || '')).toLowerCase();
+                  if (query.includes('cookie') || query.includes('biscuit') || query.includes('sweet') || query.includes('chocolate') || query.includes('cereal')) {
+                    return '🍪 Sweet Craving';
+                  }
+                  if (query.includes('chip') || query.includes('crisp') || query.includes('crunch') || query.includes('noodle') || query.includes('semiya') || query.includes('makhana')) {
+                    return '🍿 Savory Crunch';
+                  }
+                  return '🌿 Clean Refreshment';
+                };
+
                 return (
                   <View key={idx} style={{ 
                     backgroundColor: theme.card, 
@@ -425,20 +452,48 @@ export default function ResultsScreen() {
                   }}>
                     {/* Header */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <Text style={{ fontSize: 18, fontWeight: '800', color: theme.text, flex: 1, marginRight: 8 }}>
+                      <Text style={{ fontSize: 17, fontWeight: '800', color: theme.text, flex: 1, marginRight: 8 }}>
                         {alt.name}
                       </Text>
                       <View style={{ backgroundColor: theme.accentSoft, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
-                        <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 12 }}>
+                        <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 11 }}>
                           Clean Swap
                         </Text>
                       </View>
                     </View>
+
+                    {/* Premium craving & convenience tags */}
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                      <View style={{ backgroundColor: theme.bg, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: theme.border }}>
+                        <Text style={{ fontSize: 11, color: theme.text, fontWeight: '600' }}>
+                          {getCravingTag(results.category_info?.subcategory, alt.name)}
+                        </Text>
+                      </View>
+                      <View style={{ backgroundColor: theme.bg, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: theme.border }}>
+                        <Text style={{ fontSize: 11, color: theme.muted }}>
+                          ⏱️ {alt.prep_time_mins || 15} Mins
+                        </Text>
+                      </View>
+                      <View style={{ backgroundColor: theme.bg, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: theme.border }}>
+                        <Text style={{ fontSize: 11, color: theme.muted }}>
+                          🪙 ₹{alt.approx_cost_inr || 35} Est.
+                        </Text>
+                      </View>
+                    </View>
                     
-                    {/* Time / Cost */}
-                    <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
-                      <Text style={{ fontSize: 12, color: theme.muted }}>⏱️ {alt.prep_time_mins || 12} Mins</Text>
-                      <Text style={{ fontSize: 12, color: theme.muted }}>🪙 Est. ₹{alt.approx_cost_inr || 35}</Text>
+                    {/* Side-by-Side Visual Comparison */}
+                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14, alignItems: 'center' }}>
+                      <View style={{ flex: 1, backgroundColor: theme.bg, padding: 8, borderRadius: 12, borderWidth: 1, borderColor: theme.border, alignItems: 'center' }}>
+                        <Text style={{ fontSize: 9, color: theme.muted, textTransform: 'uppercase', marginBottom: 2 }}>Scanned</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: theme.error }}>NOVA {scorecard.nova_group}</Text>
+                        <Text style={{ fontSize: 10, color: theme.muted }}>{scorecard.sugar_load} Sugar</Text>
+                      </View>
+                      <Text style={{ fontSize: 14, color: theme.muted }}>➔</Text>
+                      <View style={{ flex: 1, backgroundColor: 'rgba(48, 209, 88, 0.05)', padding: 8, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(48, 209, 88, 0.2)', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 9, color: theme.muted, textTransform: 'uppercase', marginBottom: 2 }}>This Swap</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: theme.success }}>NOVA 1</Text>
+                        <Text style={{ fontSize: 10, color: theme.success }}>Low Sugar</Text>
+                      </View>
                     </View>
 
                     {/* Reasoning Narrative */}
@@ -460,14 +515,14 @@ export default function ResultsScreen() {
                       </Text>
                       {alt.reasoning?.bullets ? (
                         alt.reasoning.bullets.map((b: string, bidx: number) => (
-                          <Text key={bidx} style={{ fontSize: 12, color: theme.text, lineHeight: 18, marginBottom: 2 }}>
+                          <Text key={bidx} style={{ fontSize: 12, color: theme.text, lineHeight: 17, marginBottom: 2 }}>
                             {b}
                           </Text>
                         ))
                       ) : (
                         <Text style={{ fontSize: 12, color: theme.text }}>
                           ✓ Minimizes refined fats & sugars{"\n"}
-                          ✓ Eliminates toxic preservatives{"\n"}
+                          ✓ Eliminates synthetic preservatives{"\n"}
                           ✓ Quick home cooking recipe
                         </Text>
                       )}

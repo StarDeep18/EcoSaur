@@ -2,16 +2,22 @@ import { Platform } from 'react-native';
 
 // Standard Android emulator loopback IP is 10.0.2.2, iOS is localhost
 const BASE_URL = Platform.select({
-  android: 'http://192.168.31.126:8000/api/v1',
-  ios: 'http://localhost:8000/api/v1',
-  default: 'http://localhost:8000/api/v1',
+  android: 'http://10.136.73.160:8000/api/v1',
+  ios: 'http://10.136.73.160:8000/api/v1',
+  default: 'http://10.136.73.160:8000/api/v1',
 });
 
 export interface ApiResponseError {
   detail: string;
 }
 
+// In-memory caches for instant duplicate scan handling
+export const barcodeAnalysisCache: Record<string, any> = {};
+export const analysisCache: Record<string, any> = {};
+
 export const api = {
+  barcodeAnalysisCache,
+  analysisCache,
   /**
    * Uploads raw captured image and performs OCR text extraction.
    */
@@ -42,10 +48,11 @@ export const api = {
     return data;
   },
 
-  /**
-   * Performs rule-based analysis on verified/corrected ingredients text.
-   */
   async analyzeFood(correctedText: string, productName?: string, userId: string = 'default'): Promise<any> {
+    const cacheKey = correctedText.trim();
+    if (analysisCache[cacheKey]) {
+      return analysisCache[cacheKey];
+    }
     const res = await fetch(`${BASE_URL}/scan/analyze`, {
       method: 'POST',
       headers: {
@@ -62,6 +69,7 @@ export const api = {
     if (!res.ok) {
       throw new Error(data.detail || 'Analysis failed');
     }
+    analysisCache[cacheKey] = data;
     return data;
   },
 
@@ -118,6 +126,39 @@ export const api = {
     });
     return res.json();
   },
+
+  /**
+   * Fetches user health/dietary preference mode.
+   */
+  async getUserPreferences(): Promise<{ id: string; health_mode: string }> {
+    const res = await fetch(`${BASE_URL}/user/preferences`);
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.detail || 'Failed to fetch user preferences');
+    }
+    return data;
+  },
+
+  /**
+   * Updates user health/dietary preference mode.
+   */
+  async updateUserPreferences(healthMode: string): Promise<{ id: string; health_mode: string }> {
+    const res = await fetch(`${BASE_URL}/user/preferences`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        health_mode: healthMode,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.detail || 'Failed to update user preferences');
+    }
+    return data;
+  },
+
 
   /**
    * Side-by-side comparison of 2 or more products.

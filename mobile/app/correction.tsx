@@ -74,6 +74,11 @@ export default function CorrectionScreen() {
 
       const result = await api.analyzeFood(rawText, productName);
       
+      // Store in global in-memory session cache for instant repeat barcode scanning
+      if (params.barcode) {
+        api.barcodeAnalysisCache[params.barcode as string] = result;
+      }
+      
       // Navigate to results screen, passing data
       router.push({
         pathname: '/results',
@@ -93,17 +98,25 @@ export default function CorrectionScreen() {
     <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} contentContainerStyle={{ padding: 20 }}>
       {params.barcode && (
         <View style={{
-          backgroundColor: theme.accentSoft,
-          borderRadius: 14,
-          padding: 14,
-          marginBottom: 16,
+          backgroundColor: 'rgba(255, 214, 10, 0.06)',
+          borderRadius: 16,
+          padding: 16,
+          marginBottom: 18,
           borderWidth: 1,
-          borderColor: theme.primary,
+          borderColor: 'rgba(255, 214, 10, 0.2)',
+          flexDirection: 'row',
+          gap: 12,
+          alignItems: 'center'
         }}>
-          <Text style={{ color: theme.text, fontSize: 13, lineHeight: 18 }}>
-            🏷️ <Text style={{ fontWeight: 'bold' }}>New Barcode Detected: </Text>
-            ({params.barcode}). Adding the ingredients list will permanently crowdsource this product for other users and earn you points.
-          </Text>
+          <Text style={{ fontSize: 28 }}>🦕</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: theme.text, fontSize: 13, fontWeight: '700', marginBottom: 2 }}>
+              New Barcode: {params.barcode}
+            </Text>
+            <Text style={{ color: theme.muted, fontSize: 12, lineHeight: 16 }}>
+              🦖 <Text style={{ fontWeight: 'bold' }}>EcoSaur:</Text> "Mapping this snack grows our database! Add the ingredients to crowdsource it and earn +5 contributor points."
+            </Text>
+          </View>
         </View>
       )}
       <Text style={{ fontSize: 14, color: theme.muted, marginBottom: 20 }}>
@@ -155,15 +168,19 @@ export default function CorrectionScreen() {
                 return (
                   <TouchableOpacity 
                     key={idx} 
-                    onPress={() => setActiveWordToCorrect(clean === activeWordToCorrect ? null : clean)}
+                    onPress={() => {
+                      Vibration.vibrate(10);
+                      setActiveWordToCorrect(clean === activeWordToCorrect ? null : clean);
+                    }}
                     style={{
-                      backgroundColor: 'rgba(24ACC15, 0.15)',
+                      backgroundColor: 'rgba(250, 204, 21, 0.08)',
                       borderBottomWidth: 1.5,
                       borderBottomColor: '#facc15',
                       paddingHorizontal: 2,
+                      borderRadius: 2,
                     }}
                   >
-                    <Text style={{ color: theme.text, fontSize: 15 }}>{word}</Text>
+                    <Text style={{ color: theme.text, fontSize: 15, fontWeight: '500' }}>{word}</Text>
                   </TouchableOpacity>
                 );
               }
@@ -181,31 +198,39 @@ export default function CorrectionScreen() {
       {activeWordToCorrect && (
         <View style={{
           backgroundColor: theme.card,
-          borderRadius: 16,
-          padding: 16,
+          borderRadius: 18,
+          padding: 18,
           borderWidth: 1,
-          borderColor: theme.primary,
+          borderColor: 'rgba(250, 204, 21, 0.3)',
           marginBottom: 20,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 6,
+          elevation: 2
         }}>
-          <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 14, marginBottom: 10 }}>
-            Suggestions for "{activeWordToCorrect}"
+          <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14, marginBottom: 12 }}>
+            💡 Correction suggestion for <Text style={{ color: '#facc15' }}>"{activeWordToCorrect}"</Text>
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {getSuggestions(activeWordToCorrect).map((suggestion, idx) => (
               <TouchableOpacity
                 key={idx}
-                onPress={() => handleWordCorrection(activeWordToCorrect, suggestion)}
+                onPress={() => {
+                  Vibration.vibrate(15);
+                  handleWordCorrection(activeWordToCorrect, suggestion);
+                }}
                 style={{
-                  backgroundColor: theme.accentSoft,
-                  paddingVertical: 8,
+                  backgroundColor: 'rgba(250, 204, 21, 0.08)',
+                  paddingVertical: 10,
                   paddingHorizontal: 16,
                   borderRadius: 12,
                   borderWidth: 1,
-                  borderColor: theme.primary,
+                  borderColor: '#facc15',
                 }}
               >
-                <Text style={{ color: theme.primary, fontWeight: '600', fontSize: 13 }}>
-                  ✓ {suggestion}
+                <Text style={{ color: theme.text, fontWeight: '600', fontSize: 13 }}>
+                  {suggestion}
                 </Text>
               </TouchableOpacity>
             ))}
