@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, useColorScheme, TextInput, ActivityIndicator, Alert } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, useColorScheme, TextInput, ActivityIndicator, Alert, Animated, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { calculateClientScore, getMetricColor } from '../utils/scoring';
 import { api } from '../services/api';
@@ -56,23 +56,103 @@ export default function ResultsScreen() {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
 
+  const chatScrollRef = useRef<ScrollView>(null);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Gentle pulse breathing animation loop
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.08,
+          duration: 2500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1.0,
+          duration: 2500,
+          useNativeDriver: true,
+        })
+      ])
+    ).start();
+  }, []);
+
+  // Progressive streaming simulated typing reveal
+  const typeMessage = (fullText: string) => {
+    // Add empty message first
+    setChatHistory(prev => [...prev, { role: 'model', content: '' }]);
+    
+    let currentText = "";
+    let wordIndex = 0;
+    const words = fullText.split(" ");
+    
+    const interval = setInterval(() => {
+      if (wordIndex < words.length) {
+        currentText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+        setChatHistory(prev => {
+          const next = [...prev];
+          if (next.length > 0) {
+            next[next.length - 1] = { role: 'model', content: currentText };
+          }
+          return next;
+        });
+        wordIndex++;
+        
+        // Scroll to bottom dynamically
+        setTimeout(() => chatScrollRef.current?.scrollToEnd({ animated: true }), 30);
+      } else {
+        clearInterval(interval);
+      }
+    }, 70); // Emit a word every 70ms
+  };
+
   const handleSendChat = async () => {
     if (!chatInput.trim() || chatLoading) return;
     const userMsg: ChatMessage = { role: 'user', content: chatInput };
+    
+    // Optimistic UI update
     setChatHistory(prev => [...prev, userMsg]);
+    const currentInput = chatInput;
     setChatInput('');
     setChatLoading(true);
+    
+    setTimeout(() => chatScrollRef.current?.scrollToEnd({ animated: true }), 50);
+
     try {
       const response = await api.chatWithAI(
         [results.corrected_text || ''],
         chatHistory.map(m => ({ role: m.role, content: m.content })),
         userMsg.content
       );
-      setChatHistory(prev => [...prev, { role: 'model', content: response.reply }]);
-    } catch (err) {
-      setChatHistory(prev => [...prev, { role: 'model', content: 'Could not connect to AI assistant. Please try again.' }]);
-    } finally {
+      
       setChatLoading(false);
+      typeMessage(response.reply);
+    } catch (err) {
+      setChatLoading(false);
+      typeMessage("I'm having a bit of trouble connecting to my assistant base right now. Could you please try asking again in a moment?");
+    }
+  };
+
+  const handleQuickAction = async (promptValue: string) => {
+    if (chatLoading) return;
+    const userMsg: ChatMessage = { role: 'user', content: promptValue };
+    setChatHistory(prev => [...prev, userMsg]);
+    setChatLoading(true);
+    
+    setTimeout(() => chatScrollRef.current?.scrollToEnd({ animated: true }), 50);
+
+    try {
+      const response = await api.chatWithAI(
+        [results.corrected_text || ''],
+        chatHistory.map(m => ({ role: m.role, content: m.content })),
+        userMsg.content
+      );
+      
+      setChatLoading(false);
+      typeMessage(response.reply);
+    } catch (err) {
+      setChatLoading(false);
+      typeMessage("I'm sorry, I encountered an issue processing that quick question. Let's try once more!");
     }
   };
 
@@ -583,95 +663,217 @@ export default function ResultsScreen() {
         )}
       </ScrollView>
 
-      {/* AI Chat Collapsible Overlay */}
-      <View style={{ 
-        position: 'absolute', 
-        bottom: 0, 
-        left: 0, 
-        right: 0, 
-        backgroundColor: theme.card,
-        borderTopWidth: 1,
-        borderTopColor: theme.border,
-        maxHeight: chatOpen ? 320 : 60,
-        padding: 12,
-        borderTopLeftRadius: chatOpen ? 18 : 0,
-        borderTopRightRadius: chatOpen ? 18 : 0,
-      }}>
-        {/* Toggle header */}
-        <TouchableOpacity 
-          onPress={() => setChatOpen(!chatOpen)}
-          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: 36 }}
-        >
-          <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
-            💬 Ask EcoSaur AI Assistant
-          </Text>
-          <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 13 }}>
-            {chatOpen ? 'Minimize' : 'Open Chat'}
-          </Text>
-        </TouchableOpacity>
+      {/* Floating Assistant Button */}
+      {!chatOpen && (
+        <Animated.View style={{
+          position: 'absolute',
+          bottom: 24,
+          right: 24,
+          transform: [{ scale: pulseAnim }],
+          shadowColor: theme.primary,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 6,
+        }}>
+          <TouchableOpacity
+            onPress={() => setChatOpen(true)}
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor: theme.primary,
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderWidth: 1.5,
+              borderColor: theme.primaryLight,
+            }}
+          >
+            <Text style={{ fontSize: 26 }}>🦕</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
 
-        {chatOpen && (
-          <View style={{ flex: 1, justifyContent: 'space-between', marginTop: 10 }}>
-            {/* Messages Scroll */}
-            <ScrollView style={{ flex: 1, marginBottom: 10 }} contentContainerStyle={{ gap: 8 }}>
+      {/* Elegant Assistant Bottom-Sheet Overlay */}
+      {chatOpen && (
+        <View style={{
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'flex-end',
+          zIndex: 1000,
+        }}>
+          {/* Backdrop Dismiss Trigger */}
+          <TouchableOpacity 
+            style={StyleSheet.absoluteFillObject} 
+            activeOpacity={1} 
+            onPress={() => setChatOpen(false)} 
+          />
+          
+          <View style={{
+            backgroundColor: theme.card,
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderBottomWidth: 0,
+            padding: 20,
+            maxHeight: '75%',
+            minHeight: 400,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
+            elevation: 10,
+          }}>
+            {/* Sheet Handle */}
+            <View style={{
+              width: 40,
+              height: 4,
+              backgroundColor: theme.border,
+              borderRadius: 2,
+              alignSelf: 'center',
+              marginBottom: 16,
+            }} />
+            
+            {/* Header */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Text style={{ fontSize: 28 }}>🦕</Text>
+                <View>
+                  <Text style={{ color: theme.text, fontWeight: '800', fontSize: 16 }}>Ask EcoSaur</Text>
+                  <Text style={{ color: theme.muted, fontSize: 11 }}>Your clean-eating helper</Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={() => setChatOpen(false)} style={{
+                backgroundColor: theme.bg,
+                paddingVertical: 6,
+                paddingHorizontal: 12,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: theme.border,
+              }}>
+                <Text style={{ color: theme.text, fontSize: 12, fontWeight: '600' }}>Close</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {/* Chat History Messages */}
+            <ScrollView 
+              ref={chatScrollRef}
+              style={{ flex: 1, marginBottom: 12 }} 
+              contentContainerStyle={{ gap: 10, paddingBottom: 10 }}
+            >
               {chatHistory.length === 0 ? (
-                <Text style={{ color: theme.muted, fontSize: 13, textAlign: 'center', marginTop: 15 }}>
-                  Ask questions about additives, processing, or healthy recipes!
-                </Text>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginVertical: 30 }}>
+                  <Text style={{ fontSize: 40, marginBottom: 12 }}>🦕</Text>
+                  <Text style={{ color: theme.text, fontSize: 15, fontWeight: '700', textAlign: 'center' }}>
+                    How can I help you choose today?
+                  </Text>
+                  <Text style={{ color: theme.muted, fontSize: 12, textAlign: 'center', marginTop: 4, paddingHorizontal: 20, lineHeight: 18 }}>
+                    Select a quick prompt below or type your question about this product's ingredients.
+                  </Text>
+                </View>
               ) : (
                 chatHistory.map((msg, idx) => (
                   <View key={idx} style={{
                     alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                    backgroundColor: msg.role === 'user' ? theme.primary : theme.accentSoft,
-                    borderRadius: 14,
-                    padding: 10,
+                    backgroundColor: msg.role === 'user' ? theme.primary : theme.bg,
+                    borderRadius: 16,
+                    paddingVertical: 10,
+                    paddingHorizontal: 14,
                     maxWidth: '85%',
+                    borderWidth: msg.role === 'user' ? 0 : 1,
+                    borderColor: theme.border,
                   }}>
-                    <Text style={{ color: msg.role === 'user' ? '#fff' : theme.text, fontSize: 13 }}>
+                    <Text style={{ color: msg.role === 'user' ? '#FFFFFF' : theme.text, fontSize: 13, lineHeight: 18 }}>
                       {msg.content}
                     </Text>
                   </View>
                 ))
               )}
-              {chatLoading && <ActivityIndicator size="small" color={theme.primary} />}
+              {chatLoading && (
+                <View style={{ 
+                  alignSelf: 'flex-start', 
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  gap: 8, 
+                  backgroundColor: theme.bg, 
+                  borderRadius: 16, 
+                  paddingVertical: 10, 
+                  paddingHorizontal: 14, 
+                  borderWidth: 1, 
+                  borderColor: theme.border 
+                }}>
+                  <ActivityIndicator size="small" color={theme.primary} />
+                  <Text style={{ fontSize: 12, color: theme.muted }}>EcoSaur is thinking...</Text>
+                </View>
+              )}
             </ScrollView>
 
-            {/* Input box */}
-            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+            {/* Contextual Quick Actions */}
+            {!chatLoading && (
+              <View style={{ marginBottom: 12 }}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                  {[
+                    { text: 'Why ultra-processed?', value: 'Why is this product classified under NOVA Group ' + scorecard.nova_group + '?' },
+                    { text: 'Explain sugar load', value: 'What does glycemic sugar load of ' + scorecard.sugar_load + ' mean?' },
+                    { text: 'Explain additive density', value: 'What does synthetic additive density of ' + scorecard.additive_density + ' mean?' },
+                    { text: 'Why recommended swap?', value: 'Why was ' + mainAlternative.name + ' recommended as a swap?' },
+                  ].map((act, i) => (
+                    <TouchableOpacity
+                      key={i}
+                      onPress={() => handleQuickAction(act.value)}
+                      style={{
+                        backgroundColor: theme.bg,
+                        borderWidth: 1,
+                        borderColor: theme.border,
+                        borderRadius: 20,
+                        paddingVertical: 8,
+                        paddingHorizontal: 12,
+                      }}
+                    >
+                      <Text style={{ color: theme.primary, fontSize: 11, fontWeight: '600' }}>{act.text}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Input Box */}
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: Platform.OS === 'ios' ? 24 : 10 }}>
               <TextInput
                 value={chatInput}
                 onChangeText={setChatInput}
-                placeholder="Type here..."
+                placeholder="Ask about ingredients or swaps..."
                 placeholderTextColor={theme.muted}
                 style={{
                   flex: 1,
                   backgroundColor: theme.bg,
                   color: theme.text,
-                  borderRadius: 12,
-                  paddingHorizontal: 12,
-                  height: 38,
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                  height: 42,
                   borderWidth: 1,
                   borderColor: theme.border,
-                  fontSize: 14
+                  fontSize: 13,
                 }}
               />
               <TouchableOpacity 
                 onPress={handleSendChat}
                 style={{
                   backgroundColor: theme.primary,
-                  paddingHorizontal: 16,
-                  height: 38,
-                  borderRadius: 12,
+                  width: 42,
+                  height: 42,
+                  borderRadius: 14,
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
               >
-                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>Send</Text>
+                <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 15 }}>➔</Text>
               </TouchableOpacity>
             </View>
           </View>
-        )}
-      </View>
+        </View>
+      )}
     </View>
   );
 }
