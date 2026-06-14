@@ -39,33 +39,45 @@ Most food apps scare you. EcoSaur **educates** you.
 
 ### ✅ Implemented (Premium Consumer-Grade)
 
-- **📷 Ingredient Label Scanner** - Upload or capture a photo of any food label
-- **🔤 AI Vision OCR** - Advanced text extraction from label images with device-level canvas filtering
-- **✏️ OCR Correction Layer** - Tap-to-correct spelling mistakes manually before running analyses (handles blurry/curved labels)
-- **⚡ Spellcheck Loop** - Captures manual spelling correction edits, logging them to improve OCR mapping dynamically
-- **⚙️ Deterministic Scoring Engine** - Multi-dimensional, reproducible health scores (0–100)
-- **🛡️ Confidence & Trust System** - Displays OCR confidence and dictionary matching rates on results cards for absolute transparency
-- **📊 Score Breakdown** - Transparent table showing exactly why each point was added or deducted
-- **💬 Balanced AI Explanations** - EcoSaur AI explains scores using calm, evidence-aware, non-alarmist scientific language
-- **🍲 Recommendation Reasoning** - Explainable matching system explaining flavor similarity, texture matching, convenience prep times, and processing reductions (NOVA 4 -> Group 1 or 2)
-- **🔄 swipable Alternatives** - Traditional regional Indian recipes suited to the exact snack category (e.g. makhana, chaas, semiya)
-- **⚖️ Product Comparison** - Side-by-side smart commercial comparison engine including custom comparison verdicts
-- **🗨️ Conversational UX** - Chat with EcoSaur AI about any ingredient after scan analyses
-- **🏷️ Barcode Scanner** - Permanent crowdsourced database moat lookups with OpenFoodFacts API fail-safes
-- **📜 Scan History Insights** - History dashboard displaying dynamic, non-judgmental behavioral diagnostics (weekly sugar consumption frequency, NOVA 4 ratios, E-number logs, and swap suggestion metrics)
-- **🛡️ Community Moderation Queue** - Admin queues to resolve barcode contributions, manage Rollbacks, and verify product uploads
+- **📱 Expo Mobile Application** - Cross-platform React Native companion app built using Expo Router, NativeWind, and Expo Camera for premium on-the-go ingredient scanning and review.
+- **📷 Ingredient Label Scanner** - Upload or capture a photo of any food label on both web and mobile clients.
+- **🔤 AI Vision OCR** - Advanced text extraction from label images with device-level canvas filtering.
+- **✏️ OCR Correction Layer** - Tap-to-correct spelling mistakes manually before running analyses (handles blurry/curved labels).
+- **⚡ Spellcheck Loop** - Captures manual spelling correction edits, logging them to improve OCR mapping dynamically.
+- **⚙️ Deterministic Scoring Engine** - Multi-dimensional, reproducible health scores (0–100) based strictly on predefined rules.
+- **🛡️ Confidence & Trust System** - Displays OCR confidence and dictionary matching rates on results cards for absolute transparency.
+- **📊 Score Breakdown** - Transparent table showing exactly why each point was added or deducted.
+- **🌱 Multi-Profile Personalization** - Custom scoring adaptations and warnings for goals like Gym/Fitness, Weight Loss, Diabetic Friendly, Child Friendly, Vegan, and Vegetarian.
+- **🔬 Intelligent Typo-Tolerant Normalization** - Fuzzy matches text inputs, resolves chemical synonyms, translates E-numbers, and registers unknown ingredients for admin verification.
+- **💬 Balanced AI Explanations** - EcoSaur AI explains scores using calm, evidence-aware, non-alarmist scientific language.
+- **🍲 Recommendation Reasoning** - Explainable matching system explaining flavor similarity, texture matching, convenience prep times, and processing reductions (NOVA 4 -> Group 1 or 2).
+- **🔄 Swipable Alternatives** - Traditional regional Indian recipes suited to the exact snack category (e.g. makhana, chaas, semiya).
+- **⚖️ Product Comparison** - Side-by-side smart commercial comparison engine including custom comparison verdicts.
+- **🗨️ Conversational UX** - Chat with EcoSaur AI about any ingredient after scan analyses.
+- **🏷️ Barcode Scanner** - Permanent crowdsourced database moat lookups with OpenFoodFacts API fail-safes.
+- **📜 Scan History Insights** - History dashboard displaying dynamic, non-judgmental behavioral diagnostics (weekly sugar consumption frequency, NOVA 4 ratios, E-number logs, and swap suggestion metrics).
+- **🛡️ Community Moderation Queue** - Admin queues to resolve barcode contributions, manage Rollbacks, and verify product uploads.
 
 ---
 
 ## Tech Stack
 
-### Frontend
+### Frontend (Web)
 
 | Technology | Purpose |
 |------------|---------|
 | [Next.js](https://nextjs.org/) 16 | React framework with App Router |
 | [React](https://react.dev/) 19 | UI library |
 | [TypeScript](https://www.typescriptlang.org/) | Type safety |
+
+### Mobile (Companion App)
+
+| Technology | Purpose |
+|------------|---------|
+| [Expo](https://expo.dev/) 54 | Development platform for universal React Native applications |
+| [React Native](https://reactnative.dev/) 0.81 | Mobile framework for cross-platform iOS & Android development |
+| [Expo Router](https://docs.expo.dev/router/introduction/) 6 | File-based navigation library for React Native |
+| [NativeWind](https://www.nativewind.dev/) 4 | Tailwind CSS styling wrapper for native components |
 
 ### Backend
 
@@ -83,31 +95,28 @@ Most food apps scare you. EcoSaur **educates** you.
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Next.js Frontend                        │
-│  ┌──────────┐  ┌───────────┐  ┌──────────┐  ┌───────────┐  │
-│  │  Upload   │→│  OCR      │→│ Correction│→│  Results   │  │
-│  │  Screen   │  │  Extract  │  │  Screen   │  │  + Chat   │  │
-│  └──────────┘  └───────────┘  └──────────┘  └───────────┘  │
-└──────────────────────┬──────────────────────────────────────┘
-                       │ HTTP (REST)
-┌──────────────────────▼──────────────────────────────────────┐
-│                    FastAPI Backend                           │
-│                                                             │
-│  ┌─────────────┐  ┌──────────────┐  ┌────────────────────┐  │
-│  │ OCR Service  │  │ Text Parser  │  │  Scoring Engine    │  │
-│  │ (AI Vision)  │  │ (AI Parser → │  │  (100% Rule-Based, │  │
-│  │             │  │  Structured  │  │   No AI)           │  │
-│  │             │  │  JSON)       │  │                    │  │
-│  └─────────────┘  └──────────────┘  └────────────────────┘  │
-│                                                             │
-│  ┌─────────────┐  ┌──────────────┐  ┌────────────────────┐  │
-│  │ AI Service   │  │ Barcode      │  │  SQLite DB         │  │
-│  │ (Explain,    │  │ Service      │  │  (SQLAlchemy ORM,  │  │
-│  │  Recipes,    │  │ (OpenFood    │  │   WAL Mode,        │  │
-│  │  Chat)       │  │  Facts)      │  │   Taxonomy Index)  │  │
-│  └─────────────┘  └──────────────┘  └────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+┌───────────────────────────────┐     ┌───────────────────────────────┐
+│     Next.js Web Frontend      │     │     Expo Mobile Companion     │
+│  Upload → OCR → Correct       │     │  Camera → OCR → Correct       │
+│  └───► Results & Chat  ◄──────┘     └───────► Results & Chat  ◄─────┘
+└──────────────┬────────────────┘             └────────┬──────────────┘
+               │                                       │
+               └───────────────────┬───────────────────┘
+                                   │ HTTP (REST)
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                          FastAPI Backend                            │
+│                                                                     │
+│  ┌──────────────┐   ┌─────────────────┐   ┌──────────────────────┐  │
+│  │ OCR Service  │   │  Text Parser    │   │   Scoring Engine     │  │
+│  │ (AI Vision)  │   │  (Normalization)│   │   (Rule-Based, 0-100)│  │
+│  └──────────────┘   └─────────────────┘   └──────────────────────┘  │
+│                                                                     │
+│  ┌──────────────┐   ┌─────────────────┐   ┌──────────────────────┐  │
+│  │  AI Service  │   │ Barcode Service │   │      SQLite DB       │  │
+│  │  (Explain)   │   │ (OpenFoodFacts) │   │  (SQLAlchemy + WAL)  │  │
+│  └──────────────┘   └─────────────────┘   └──────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -174,6 +183,22 @@ npm run dev
 ```
 
 The app will be available at `http://localhost:3000`.
+
+### 4. Mobile Setup (React Native / Expo Companion)
+
+Ensure you have the Expo Go app installed on your physical device if you wish to run it there.
+
+```bash
+cd mobile
+
+# Install dependencies
+npm install
+
+# Start the Expo development server
+npm run start
+```
+
+Press `a` for Android Emulator, `i` for iOS Simulator, or scan the QR code using the Expo Go application on iOS/Android to run it on your physical device.
 
 ---
 
@@ -317,6 +342,19 @@ EcoSaur/
 │   │   ├── layout.tsx              # Root layout
 │   │   └── globals.css             # Spacing variables & HSL colors
 │
+├── mobile/
+│   ├── app/
+│   │   ├── _layout.tsx             # Universal route wrapper and navigation tabs
+│   │   ├── index.tsx               # Dashboard screen with scan logs & goal preferences
+│   │   ├── scan.tsx                # Expo camera viewfinder & canvas scanner overlay
+│   │   ├── correction.tsx          # Manual text spelling verification layer
+│   │   └── results.tsx             # Score details, swipable alternatives & follow-up chat
+│   ├── services/
+│   │   └── api.ts                  # Axios client hitting FastAPI endpoints
+│   ├── utils/
+│   │   └── scoring.ts              # Local scoring calculations and helper maps
+│   └── package.json                # Expo dependency configuration
+│
 └── README.md                       # You are here
 ```
 
@@ -334,11 +372,12 @@ EcoSaur/
 - [x] Non-judgmental Scan History behavioral insights & swap dashboards
 - [x] Admin crowdsourcing queues & contributor verification actions
 - [x] Supabase/TinyDB systems fully migrated to highly operational SQLite ORM structures under WAL mode
+- [x] Fully functional cross-platform Expo / React Native companion app mirroring all core web features
 
 ### 🔲 Phase 3 - Community & Mobile Releases
-- [ ] PWA installation support for iOS & Android
+- [ ] iOS App Store & Android Google Play Store publishing pipeline
 - [ ] User authentication (OAuth integration)
-- [ ] smart comparison charts across commercial snack brands
+- [ ] Smart comparison charts across commercial snack brands
 - [ ] Gamification (streaks, badges, and community goals)
 
 ---
