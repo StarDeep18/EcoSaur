@@ -4,20 +4,11 @@
     <strong>Premium AI-Powered Food Ingredient Analyzer</strong><br/>
     <em>Eat Smarter, Not Harder.</em>
   </p>
-  <p align="center">
-    <a href="#features">Features</a> •
-    <a href="#tech-stack">Tech Stack</a> •
-    <a href="#getting-started">Getting Started</a> •
-    <a href="#api-reference">API</a> •
-    <a href="#scoring-system">Scoring</a> •
-    <a href="#project-structure">Structure</a> •
-    <a href="#roadmap">Roadmap</a>
-  </p>
 </p>
 
 ---
 
-## What is EcoSaur?
+# Overview
 
 EcoSaur scans packaged food ingredient labels, evaluates nutritional quality using a **transparent, rule-based scoring engine**, and suggests simple homemade alternatives - all without shaming brands or spreading misinformation.
 
@@ -35,7 +26,39 @@ Most food apps scare you. EcoSaur **educates** you.
 
 ---
 
-## Features
+## Scoring System
+
+EcoSaur uses a **100% deterministic, rule-based scoring engine**. AI never decides scores.
+
+### How It Works
+
+Every product starts at **100 points**. Points are added or deducted based on transparent rules:
+
+#### Penalties
+
+| Trigger | Impact | Example Ingredients |
+|---------|--------|---------------------|
+| Trans fats / hydrogenated oils | **-25** | Partially hydrogenated vegetable oil |
+| Multiple forms of added sugar | **-20** | Sugar, corn syrup, maltodextrin |
+| Single added sugar source | **-10** | Sugar |
+| Refined flour (Maida) | **-10** | Refined wheat flour, bleached flour |
+| Palm oil | **-10** | Palm oil, palmolein |
+| Artificial colors (per color) | **-5 each** | Tartrazine, Sunset Yellow, E110 |
+| Multiple preservatives | **-5** | Sodium benzoate + potassium sorbate |
+| Long ingredient list (>15) | **-5** | Highly processed products |
+
+#### Bonuses
+
+| Trigger | Impact | Example |
+|---------|--------|---------|
+| Whole grain as main ingredient | **+10** | Whole wheat flour, oats, ragi |
+| Good protein (≥5g) | **+10** | High protein content |
+| Good fiber (≥3g) | **+10** | High dietary fiber |
+| Simple ingredients (≤5) | **+5** | Minimal processing |
+
+---
+
+# Features
 
 ### ✅ Implemented (Premium Consumer-Grade)
 
@@ -60,7 +83,7 @@ Most food apps scare you. EcoSaur **educates** you.
 
 ---
 
-## Tech Stack
+# Tech Stack
 
 ### Frontend (Web)
 
@@ -92,7 +115,7 @@ Most food apps scare you. EcoSaur **educates** you.
 
 ---
 
-## Architecture
+# Architecture
 
 ```
 ┌───────────────────────────────┐     ┌───────────────────────────────┐
@@ -119,88 +142,58 @@ Most food apps scare you. EcoSaur **educates** you.
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
----
+## Project Structure
 
-## Getting Started
-
-### Prerequisites
-
-- **Python** 3.11+
-- **Node.js** 18+
-- **AI API Key** - Get one from [Google AI Studio](https://aistudio.google.com/apikey)
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/StarDeep18/EcoSaur.git
-cd EcoSaur
 ```
-
-### 2. Backend Setup
-
-```bash
-cd backend
-
-# Create virtual environment
-python -m venv venv
-
-# Activate (Windows)
-venv\Scripts\activate
-# Activate (macOS/Linux)
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
+EcoSaur/
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── endpoints.py        # REST API routes & admin moderation
+│   │   ├── core/
+│   │   │   └── config.py           # Environment config (Pydantic)
+│   │   ├── db/
+│   │   │   ├── database.py         # SQLite connector & WAL Mode
+│   │   │   ├── migrate.py          # Category seeder & TinyDB migrator
+│   │   │   └── tinydb_client.py    # Backward-compatible database adapter
+│   │   ├── models/
+│   │   │   ├── database_models.py  # SQLAlchemy ORM models
+│   │   │   └── schemas.py          # Pydantic request/response models
+│   │   ├── services/
+│   │   │   ├── ai_service.py       # Explanations, recipes, chat persona
+│   │   │   ├── barcode_service.py  # OpenFoodFacts barcode lookup
+│   │   │   ├── category_engine.py  # Relational taxonomic classifier
+│   │   │   ├── insights_engine.py  # scan history behavior diagnostic
+│   │   │   ├── ocr_service.py      # AI Vision OCR extraction
+│   │   │   ├── parser.py           # Structuring text → JSON
+│   │   │   ├── reasoning_engine.py # explainable matching compiler
+│   │   │   └── scoring.py          # ⭐ Deterministic scoring engine
+│   │   └── main.py                 # FastAPI app entry point
+│   ├── requirements.txt            # Python dependencies
+│
+├── frontend/
+│   ├── src/app/
+│   │   ├── page.tsx                # Landing page
+│   │   ├── scan/page.tsx           # Scan flow (upload → OCR → correct → results → chat)
+│   │   ├── history/page.tsx        # Insights & History dashboard
+│   │   ├── layout.tsx              # Root layout
+│   │   └── globals.css             # Spacing variables & HSL colors
+│
+├── mobile/
+│   ├── app/
+│   │   ├── _layout.tsx             # Universal route wrapper and navigation tabs
+│   │   ├── index.tsx               # Dashboard screen with scan logs & goal preferences
+│   │   ├── scan.tsx                # Expo camera viewfinder & canvas scanner overlay
+│   │   ├── correction.tsx          # Manual text spelling verification layer
+│   │   └── results.tsx             # Score details, swipable alternatives & follow-up chat
+│   ├── services/
+│   │   └── api.ts                  # Axios client hitting FastAPI endpoints
+│   ├── utils/
+│   │   └── scoring.ts              # Local scoring calculations and helper maps
+│   └── package.json                # Expo dependency configuration
+│
+└── README.md                       # You are here
 ```
-
-Create a `.env` file in the `backend/` directory:
-
-```env
-ECOSAUR_AI_API_KEY=your_ai_api_key_here
-```
-
-Start the backend server:
-
-```bash
-uvicorn app.main:app --reload --port 8000
-```
-
-The database tables will be initialized, seeded with taxonomy nodes, and legacy TinyDB history will be auto-migrated dynamically at startup. API docs will be available at `http://localhost:8000/docs`.
-
-### 3. Frontend Setup
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Create .env.local
-echo "NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1" > .env.local
-
-# Start dev server
-npm run dev
-```
-
-The app will be available at `http://localhost:3000`.
-
-### 4. Mobile Setup (React Native / Expo Companion)
-
-Ensure you have the Expo Go app installed on your physical device if you wish to run it there.
-
-```bash
-cd mobile
-
-# Install dependencies
-npm install
-
-# Start the Expo development server
-npm run start
-```
-
-Press `a` for Android Emulator, `i` for iOS Simulator, or scan the QR code using the Expo Go application on iOS/Android to run it on your physical device.
-
----
 
 ## API Reference
 
@@ -273,112 +266,107 @@ Submit corrected text for deterministic scoring, trust index computation, and AI
 
 ---
 
-## Scoring System
+# Screenshots
 
-EcoSaur uses a **100% deterministic, rule-based scoring engine**. AI never decides scores.
+EcoSaur's user interface is designed with a premium, custom dark-obsidian aesthetic featuring glowing neon green highlights, clean Google Fonts typography, and smooth layouts.
 
-### How It Works
+### Web Dashboard Mockup
+![EcoSaur Web Dashboard](docs/screenshots/web_mockup.png)
 
-Every product starts at **100 points**. Points are added or deducted based on transparent rules:
-
-#### Penalties
-
-| Trigger | Impact | Example Ingredients |
-|---------|--------|---------------------|
-| Trans fats / hydrogenated oils | **-25** | Partially hydrogenated vegetable oil |
-| Multiple forms of added sugar | **-20** | Sugar, corn syrup, maltodextrin |
-| Single added sugar source | **-10** | Sugar |
-| Refined flour (Maida) | **-10** | Refined wheat flour, bleached flour |
-| Palm oil | **-10** | Palm oil, palmolein |
-| Artificial colors (per color) | **-5 each** | Tartrazine, Sunset Yellow, E110 |
-| Multiple preservatives | **-5** | Sodium benzoate + potassium sorbate |
-| Long ingredient list (>15) | **-5** | Highly processed products |
-
-#### Bonuses
-
-| Trigger | Impact | Example |
-|---------|--------|---------|
-| Whole grain as main ingredient | **+10** | Whole wheat flour, oats, ragi |
-| Good protein (≥5g) | **+10** | High protein content |
-| Good fiber (≥3g) | **+10** | High dietary fiber |
-| Simple ingredients (≤5) | **+5** | Minimal processing |
+### Mobile Companion App Mockup
+![EcoSaur Mobile Application](docs/screenshots/mobile_mockup.png)
 
 ---
 
-## Project Structure
+# Installation
 
+### Prerequisites
+
+- **Python** 3.11+
+- **Node.js** 18+
+- **AI API Key** - Get one from [Google AI Studio](https://aistudio.google.com/apikey)
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/StarDeep18/EcoSaur.git
+cd EcoSaur
 ```
-EcoSaur/
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   │   └── endpoints.py        # REST API routes & admin moderation
-│   │   ├── core/
-│   │   │   └── config.py           # Environment config (Pydantic)
-│   │   ├── db/
-│   │   │   ├── database.py         # SQLite connector & WAL Mode
-│   │   │   ├── migrate.py          # Category seeder & TinyDB migrator
-│   │   │   └── tinydb_client.py    # Backward-compatible database adapter
-│   │   ├── models/
-│   │   │   ├── database_models.py  # SQLAlchemy ORM models
-│   │   │   └── schemas.py          # Pydantic request/response models
-│   │   ├── services/
-│   │   │   ├── ai_service.py       # Explanations, recipes, chat persona
-│   │   │   ├── barcode_service.py  # OpenFoodFacts barcode lookup
-│   │   │   ├── category_engine.py  # Relational taxonomic classifier
-│   │   │   ├── insights_engine.py  # scan history behavior diagnostic
-│   │   │   ├── ocr_service.py      # AI Vision OCR extraction
-│   │   │   ├── parser.py           # Structuring text → JSON
-│   │   │   ├── reasoning_engine.py # explainable matching compiler
-│   │   │   └── scoring.py          # ⭐ Deterministic scoring engine
-│   │   └── main.py                 # FastAPI app entry point
-│   ├── requirements.txt            # Python dependencies
-│
-├── frontend/
-│   ├── src/app/
-│   │   ├── page.tsx                # Landing page
-│   │   ├── scan/page.tsx           # Scan flow (upload → OCR → correct → results → chat)
-│   │   ├── history/page.tsx        # Insights & History dashboard
-│   │   ├── layout.tsx              # Root layout
-│   │   └── globals.css             # Spacing variables & HSL colors
-│
-├── mobile/
-│   ├── app/
-│   │   ├── _layout.tsx             # Universal route wrapper and navigation tabs
-│   │   ├── index.tsx               # Dashboard screen with scan logs & goal preferences
-│   │   ├── scan.tsx                # Expo camera viewfinder & canvas scanner overlay
-│   │   ├── correction.tsx          # Manual text spelling verification layer
-│   │   └── results.tsx             # Score details, swipable alternatives & follow-up chat
-│   ├── services/
-│   │   └── api.ts                  # Axios client hitting FastAPI endpoints
-│   ├── utils/
-│   │   └── scoring.ts              # Local scoring calculations and helper maps
-│   └── package.json                # Expo dependency configuration
-│
-└── README.md                       # You are here
+
+### 2. Backend Setup
+
+```bash
+cd backend
+
+# Create virtual environment
+python -m venv venv
+
+# Activate (Windows)
+venv\Scripts\activate
+# Activate (macOS/Linux)
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
 ```
+
+Create a `.env` file in the `backend/` directory:
+
+```env
+ECOSAUR_AI_API_KEY=your_ai_api_key_here
+```
+
+Start the backend server:
+
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+
+The database tables will be initialized, seeded with taxonomy nodes, and legacy TinyDB history will be auto-migrated dynamically at startup. API docs will be available at `http://localhost:8000/docs`.
+
+### 3. Frontend Setup
+
+```bash
+cd ../frontend
+
+# Install dependencies
+npm install
+
+# Create .env.local
+echo "NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1" > .env.local
+
+# Start dev server
+npm run dev
+```
+
+The app will be available at `http://localhost:3000`.
+
+### 4. Mobile Setup (React Native / Expo Companion)
+
+Ensure you have the Expo Go app installed on your physical device if you wish to run it there.
+
+```bash
+cd ../mobile
+
+# Install dependencies
+npm install
+
+# Start the Expo development server
+npm run start
+```
+
+Press `a` for Android Emulator, `i` for iOS Simulator, or scan the QR code using the Expo Go application on iOS/Android to run it on your physical device.
 
 ---
 
-## Roadmap
+# Future Improvements
 
-### ✅ Phase 1 & 2 - Premium High-Trust Release (Completed)
-- [x] Multimodal AI Vision OCR with device-level preprocessing
-- [x] Editable OCR correction layer & manual spellcheck feedback logs
-- [x] Deterministic rule-based scoring engine & transparent breakdown
-- [x] Explainable suggestion matching detailing craving and texture similarity
-- [x] Unified dark-obsidian design system with premium transition motion
-- [x] OCR & Ingredient Recognized trust confidence indices
-- [x] Non-judgmental Scan History behavioral insights & swap dashboards
-- [x] Admin crowdsourcing queues & contributor verification actions
-- [x] Supabase/TinyDB systems fully migrated to highly operational SQLite ORM structures under WAL mode
-- [x] Fully functional cross-platform Expo / React Native companion app mirroring all core web features
+### 🚀 Planned Features & Releases
 
-### 🔲 Phase 3 - Community & Mobile Releases
-- [ ] iOS App Store & Android Google Play Store publishing pipeline
-- [ ] User authentication (OAuth integration)
-- [ ] Smart comparison charts across commercial snack brands
-- [ ] Gamification (streaks, badges, and community goals)
+- **📱 App Store Publishing:** Streamlined publishing pipeline for iOS App Store and Android Google Play Store.
+- **🔐 User Authentication:** Secure sign-in using OAuth provider integrations (Google, Apple, etc.) to persist scan history across web and mobile.
+- **📊 Brand Comparisons:** Interactive charts to compare multiple commercial snack brands side-by-side.
+- **🏆 Gamification Elements:** Streaks, badges, and collaborative community health goals.
 
 ---
 
