@@ -4,6 +4,36 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
+const inMemoryStorage: Record<string, string> = {};
+
+const safeAsyncStorage = {
+  getItem: async (key: string) => {
+    try {
+      // Direct access check to see if the module works
+      return await AsyncStorage.getItem(key);
+    } catch (e) {
+      console.warn("⚠️ AsyncStorage.getItem failed, using in-memory fallback:", e);
+      return inMemoryStorage[key] || null;
+    }
+  },
+  setItem: async (key: string, value: string) => {
+    try {
+      await AsyncStorage.setItem(key, value);
+    } catch (e) {
+      console.warn("⚠️ AsyncStorage.setItem failed, using in-memory fallback:", e);
+      inMemoryStorage[key] = value;
+    }
+  },
+  removeItem: async (key: string) => {
+    try {
+      await AsyncStorage.removeItem(key);
+    } catch (e) {
+      console.warn("⚠️ AsyncStorage.removeItem failed, using in-memory fallback:", e);
+      delete inMemoryStorage[key];
+    }
+  }
+};
+
 let supabaseClient: any;
 
 try {
@@ -28,7 +58,7 @@ try {
   } else {
     supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
-        storage: AsyncStorage,
+        storage: safeAsyncStorage,
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: false,
