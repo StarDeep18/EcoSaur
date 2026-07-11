@@ -4,8 +4,9 @@ from google.genai.errors import ClientError
 from src.config.config import settings
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
+print(f"Loaded API Key: {settings.GEMINI_API_KEY[:10]}...{settings.GEMINI_API_KEY[-5:] if settings.GEMINI_API_KEY else ''}")
 
-models = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash', 'gemini-2.0-flash-lite']
+models = ['gemini-2.0-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-pro-latest']
 
 for m in models:
     try:
@@ -14,7 +15,7 @@ for m in models:
         break  # Found a working model
     except ClientError as e:
         if e.code == 429:
-            print(f"[RATE LIMITED] {m} (429) - trying next...")
+            print(f"[RATE LIMITED] {m} (429): {e} - trying next...")
         else:
             print(f"[FAILED] {m}: {e}")
     except Exception as e:

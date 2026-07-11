@@ -12,10 +12,10 @@ client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 # Fallback models hierarchy in case of quota exhaustion
 FALLBACK_MODELS = [
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-lite',
     'gemini-2.0-flash',
     'gemini-2.0-flash-lite',
+    'gemini-1.5-flash',
+    'gemini-1.5-flash-lite',
 ]
 
 ECOSAUR_PERSONA = (
@@ -48,15 +48,12 @@ def _generate_with_fallback(prompt: str) -> str:
             return response.text.strip()
         except ClientError as e:
             last_error = e
-            if e.code == 429:
-                print(f"Gemini: {model} rate-limited (429), trying next model...")
-                continue
-            print(f"Gemini ClientError ({model}): {e}")
-            break
+            print(f"Gemini ClientError ({model}): {e} — trying next model...")
+            continue
         except Exception as e:
             last_error = e
-            print(f"Gemini GeneralError ({model}): {e}")
-            break
+            print(f"Gemini GeneralError ({model}): {e} — trying next model...")
+            continue
     
     raise RuntimeError(f"All Gemini models failed. Last error: {last_error}")
 

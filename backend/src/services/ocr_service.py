@@ -7,10 +7,10 @@ client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 # Fallback model chain
 FALLBACK_MODELS = [
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-lite',
     'gemini-2.0-flash',
     'gemini-2.0-flash-lite',
+    'gemini-1.5-flash',
+    'gemini-1.5-flash-lite',
 ]
 
 async def extract_ingredients_and_nutrition(image_bytes: bytes) -> str:
@@ -41,15 +41,12 @@ async def extract_ingredients_and_nutrition(image_bytes: bytes) -> str:
             return response.text.strip()
         except ClientError as e:
             last_error = e
-            if e.code == 429:
-                print(f"OCR: {model} rate-limited (429), trying next model...")
-                continue
-            print(f"OCR Error ({model}): {e}")
-            break
+            print(f"OCR Error ({model}): {e} — trying next model...")
+            continue
         except Exception as e:
             last_error = e
-            print(f"OCR Error ({model}): {e}")
-            break
+            print(f"OCR Error ({model}): {e} — trying next model...")
+            continue
             
     print(f"OCR: All models failed. Last error: {last_error}")
     return "Error extracting text. Please type the ingredients manually or try another image."
