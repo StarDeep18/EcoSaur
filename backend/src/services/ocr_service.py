@@ -7,10 +7,10 @@ client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 # Fallback model chain
 FALLBACK_MODELS = [
-    'gemini-2.0-flash',
-    'gemini-2.0-flash-lite',
     'gemini-flash-latest',
     'gemini-flash-lite-latest',
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-lite',
 ]
 
 async def extract_ingredients_and_nutrition(image_bytes: bytes) -> str:
