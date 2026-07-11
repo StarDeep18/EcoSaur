@@ -14,8 +14,8 @@ client = genai.Client(api_key=settings.GEMINI_API_KEY)
 FALLBACK_MODELS = [
     'gemini-2.0-flash',
     'gemini-2.0-flash-lite',
-    'gemini-1.5-flash',
-    'gemini-1.5-flash-lite',
+    'gemini-flash-latest',
+    'gemini-flash-lite-latest',
 ]
 
 ECOSAUR_PERSONA = (
