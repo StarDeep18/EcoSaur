@@ -4,8 +4,8 @@ import sys
 # Set Python path to backend
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.services import normalization_engine
-from app.db.database import engine, Base
+from src.services import normalization_engine
+from src.config.database import engine, Base
 
 def run_normalization_tests():
     print("==================================================")
@@ -47,8 +47,8 @@ def run_normalization_tests():
     print(f"  Result Name: {res.get('name')}, Flagged: {res.get('flagged')}")
     assert res.get("flagged") is True, "Unknown ingredient should be flagged!"
     
-    from app.db.database import SessionLocal
-    from app.models.database_models import ModerationQueue
+    from src.config.database import SessionLocal
+    from src.models.database_models import ModerationQueue
     import json
     
     db = SessionLocal()

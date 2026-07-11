@@ -38,23 +38,16 @@ Every product starts at **100 points**. Points are added or deducted based on tr
 
 | Trigger | Impact | Example Ingredients |
 |---------|--------|---------------------|
-| Trans fats / hydrogenated oils | **-25** | Partially hydrogenated vegetable oil |
-| Multiple forms of added sugar | **-20** | Sugar, corn syrup, maltodextrin |
-| Single added sugar source | **-10** | Sugar |
-| Refined flour (Maida) | **-10** | Refined wheat flour, bleached flour |
-| Palm oil | **-10** | Palm oil, palmolein |
-| Artificial colors (per color) | **-5 each** | Tartrazine, Sunset Yellow, E110 |
-| Multiple preservatives | **-5** | Sodium benzoate + potassium sorbate |
-| Long ingredient list (>15) | **-5** | Highly processed products |
+| Trans fats / hydrogenated fats | **-30** | Partially hydrogenated vegetable oil, palmolein |
+| High sugar load (≥ 15g per serving) | **-15** | Sucrose, sugar, corn syrup |
+| Moderate sugar load (5g - 15g) | **-5** | Honey, raw sugar, jaggery |
 
 #### Bonuses
 
 | Trigger | Impact | Example |
 |---------|--------|---------|
-| Whole grain as main ingredient | **+10** | Whole wheat flour, oats, ragi |
-| Good protein (≥5g) | **+10** | High protein content |
-| Good fiber (≥3g) | **+10** | High dietary fiber |
-| Simple ingredients (≤5) | **+5** | Minimal processing |
+| High Protein Source (≥ 5g or seeds/whey) | **+10** | Whey protein isolate, milk solids, peanuts |
+| High Fiber Source (≥ 3g or whole grains) | **+10** | Whole wheat flour, oats, ragi |
 
 ---
 
@@ -62,56 +55,35 @@ Every product starts at **100 points**. Points are added or deducted based on tr
 
 ### ✅ Implemented (Premium Consumer-Grade)
 
-- **📱 Expo Mobile Application** - Cross-platform React Native companion app built using Expo Router, NativeWind, and Expo Camera for premium on-the-go ingredient scanning and review.
-- **📷 Ingredient Label Scanner** - Upload or capture a photo of any food label on both web and mobile clients.
-- **🔤 AI Vision OCR** - Advanced text extraction from label images with device-level canvas filtering.
-- **✏️ OCR Correction Layer** - Tap-to-correct spelling mistakes manually before running analyses (handles blurry/curved labels).
-- **⚡ Spellcheck Loop** - Captures manual spelling correction edits, logging them to improve OCR mapping dynamically.
-- **⚙️ Deterministic Scoring Engine** - Multi-dimensional, reproducible health scores (0–100) based strictly on predefined rules.
-- **🛡️ Confidence & Trust System** - Displays OCR confidence and dictionary matching rates on results cards for absolute transparency.
-- **📊 Score Breakdown** - Transparent table showing exactly why each point was added or deducted.
-- **🌱 Multi-Profile Personalization** - Custom scoring adaptations and warnings for goals like Gym/Fitness, Weight Loss, Diabetic Friendly, Child Friendly, Vegan, and Vegetarian.
-- **🔬 Intelligent Typo-Tolerant Normalization** - Fuzzy matches text inputs, resolves chemical synonyms, translates E-numbers, and registers unknown ingredients for admin verification.
-- **💬 Balanced AI Explanations** - EcoSaur AI explains scores using calm, evidence-aware, non-alarmist scientific language.
-- **🍲 Recommendation Reasoning** - Explainable matching system explaining flavor similarity, texture matching, convenience prep times, and processing reductions (NOVA 4 -> Group 1 or 2).
-- **🔄 Swipable Alternatives** - Traditional regional Indian recipes suited to the exact snack category (e.g. makhana, chaas, semiya).
-- **⚖️ Product Comparison** - Side-by-side smart commercial comparison engine including custom comparison verdicts.
-- **🗨️ Conversational UX** - Chat with EcoSaur AI about any ingredient after scan analyses.
-- **🏷️ Barcode Scanner** - Permanent crowdsourced database moat lookups with OpenFoodFacts API fail-safes.
-- **📜 Scan History Insights** - History dashboard displaying dynamic, non-judgmental behavioral diagnostics (weekly sugar consumption frequency, NOVA 4 ratios, E-number logs, and swap suggestion metrics).
-- **🛡️ Community Moderation Queue** - Admin queues to resolve barcode contributions, manage Rollbacks, and verify product uploads.
+- **📱 Expo Mobile Application** - Structured under `mobile/src/` tree (`screens/`, `services/`, `theme/`, `utils/`) built using Expo Router, NativeWind, and Expo Camera for premium ingredient scanning.
+- **🔐 Supabase Authentication** - Secure sign-in, signup, and user sessions caching via Expo Router navigation redirects.
+- **📷 Ingredient Label Scanner** - Capture ingredient lists via the camera viewfinder with real-time laser overlays.
+- **🔤 AI Vision OCR & Correction** - Advanced label text extraction with manual correction and typo spelling normalizers.
+- **⚙️ Deterministic Scoring Engine** - Base 100 scoring with letter grades mapping (S, A, B, C, D, F).
+- **🌱 Focus Personalization** - Customizable health modes (Diabetic Friendly, Child Friendly, Vegan, Vegetarian) that dynamically adjust scorecards and explanations.
+- **🔄 Swipable Indian Swaps** - Healthy regional recipes (e.g. chaas, makhana, semiya) contextualized to your flavor and texture cravings.
+- **⚖️ Side-by-Side Comparison** - Compare two products side-by-side with an automated comparative verdict.
+- **🗨️ Conversational Chat** - Conversational bot to safely query details on specific chemical E-numbers and stabilizers.
+- **🏷️ Barcode Lookup** - Integrated OpenFoodFacts API barcode check with crowdsourced fallback upload logs.
+- **📜 Scan History & Limits** - Persisted PostgreSQL scan histories restricted via Supabase Row Level Security (RLS) with a 10 scans/day daily rate-limiting cap.
 
 ---
 
 # Tech Stack
 
 ### Frontend (Web)
-
-| Technology | Purpose |
-|------------|---------|
-| [Next.js](https://nextjs.org/) 16 | React framework with App Router |
-| [React](https://react.dev/) 19 | UI library |
-| [TypeScript](https://www.typescriptlang.org/) | Type safety |
+- **Next.js 16** (App Router)
+- **TypeScript** & **globals.css** variables
 
 ### Mobile (Companion App)
-
-| Technology | Purpose |
-|------------|---------|
-| [Expo](https://expo.dev/) 54 | Development platform for universal React Native applications |
-| [React Native](https://reactnative.dev/) 0.81 | Mobile framework for cross-platform iOS & Android development |
-| [Expo Router](https://docs.expo.dev/router/introduction/) 6 | File-based navigation library for React Native |
-| [NativeWind](https://www.nativewind.dev/) 4 | Tailwind CSS styling wrapper for native components |
+- **Expo 54** (React Native 0.81)
+- **Expo Router 6** (File-based navigation)
+- **Supabase JS Client** (Auth & Session management)
 
 ### Backend
-
-| Technology | Purpose |
-|------------|---------|
-| [FastAPI](https://fastapi.tiangolo.com/) | Python API server |
-| [SQLite](https://sqlite.org/) | Primary operational database with Write-Ahead Logging (WAL) enabled |
-| [SQLAlchemy ORM](https://www.sqlalchemy.org/) | Relational database mapping with migrations and query indexes |
-| [EcoSaur AI Vision](https://ai.google.dev/) | Advanced Multimodal OCR, text parsing, explanations, and chat |
-| [OpenFoodFacts API](https://world.openfoodfacts.org/) | Barcode product lookup |
-| [Pydantic](https://docs.pydantic.dev/) | Request/response validation |
+- **FastAPI** (Python 3.11+)
+- **SQLAlchemy ORM** (PostgreSQL / SQLite support)
+- **Google GenAI SDK** (Gemini Vision OCR, Parser, and Chat)
 
 ---
 
@@ -125,19 +97,19 @@ Every product starts at **100 points**. Points are added or deducted based on tr
 └──────────────┬────────────────┘             └────────┬──────────────┘
                │                                       │
                └───────────────────┬───────────────────┘
-                                   │ HTTP (REST)
+                                   │ HTTP (REST + JWT Bearer)
                                    ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                          FastAPI Backend                            │
 │                                                                     │
 │  ┌──────────────┐   ┌─────────────────┐   ┌──────────────────────┐  │
-│  │ OCR Service  │   │  Text Parser    │   │   Scoring Engine     │  │
-│  │ (AI Vision)  │   │  (Normalization)│   │   (Rule-Based, 0-100)│  │
+│  │ OCR Service  │   │  Text Parser    │   │   Scoring Service    │  │
+│  │ (AI Vision)  │   │  (Normalization)│   │   (Deterministic)    │  │
 │  └──────────────┘   └─────────────────┘   └──────────────────────┘  │
 │                                                                     │
 │  ┌──────────────┐   ┌─────────────────┐   ┌──────────────────────┐  │
-│  │  AI Service  │   │ Barcode Service │   │      SQLite DB       │  │
-│  │  (Explain)   │   │ (OpenFoodFacts) │   │  (SQLAlchemy + WAL)  │  │
+│  │  AI Service  │   │ Barcode Service │   │   Supabase Postgres  │  │
+│  │  (Explain)   │   │ (OpenFoodFacts) │   │  (RLS Enabled / R/W) │  │
 │  └──────────────┘   └─────────────────┘   └──────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -147,253 +119,100 @@ Every product starts at **100 points**. Points are added or deducted based on tr
 ```
 EcoSaur/
 ├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   │   └── endpoints.py        # REST API routes & admin moderation
-│   │   ├── core/
-│   │   │   └── config.py           # Environment config (Pydantic)
+│   ├── src/
+│   │   ├── config/
+│   │   │   ├── config.py           # Configuration environment setup
+│   │   │   ├── database.py         # Multi-DB (Supabase PG / SQLite fallback)
+│   │   │   └── migrate.py          # Seeding & DB creation
 │   │   ├── db/
-│   │   │   ├── database.py         # SQLite connector & WAL Mode
-│   │   │   ├── migrate.py          # Category seeder & TinyDB migrator
-│   │   │   └── tinydb_client.py    # Backward-compatible database adapter
+│   │   │   └── crud.py             # Database CRUD methods
+│   │   ├── middleware/
+│   │   │   ├── auth_middleware.py  # Supabase JWT token verification
+│   │   │   └── rate_limiter.py     # 10 scans/day limit enforcer
 │   │   ├── models/
-│   │   │   ├── database_models.py  # SQLAlchemy ORM models
-│   │   │   └── schemas.py          # Pydantic request/response models
+│   │   │   ├── database_models.py  # SQLAlchemy mapping models
+│   │   │   └── schemas.py          # Pydantic typing validations
+│   │   ├── routes/
+│   │   │   ├── analyze.py          # Scan, compare, barcode endpoints
+│   │   │   ├── auth.py             # User profile preferences
+│   │   │   └── history.py          # scan history & insights endpoints
 │   │   ├── services/
-│   │   │   ├── ai_service.py       # Explanations, recipes, chat persona
-│   │   │   ├── barcode_service.py  # OpenFoodFacts barcode lookup
-│   │   │   ├── category_engine.py  # Relational taxonomic classifier
-│   │   │   ├── insights_engine.py  # scan history behavior diagnostic
-│   │   │   ├── ocr_service.py      # AI Vision OCR extraction
-│   │   │   ├── parser.py           # Structuring text → JSON
-│   │   │   ├── reasoning_engine.py # explainable matching compiler
-│   │   │   └── scoring.py          # ⭐ Deterministic scoring engine
-│   │   └── main.py                 # FastAPI app entry point
-│   ├── requirements.txt            # Python dependencies
-│
-├── frontend/
-│   ├── src/app/
-│   │   ├── page.tsx                # Landing page
-│   │   ├── scan/page.tsx           # Scan flow (upload → OCR → correct → results → chat)
-│   │   ├── history/page.tsx        # Insights & History dashboard
-│   │   ├── layout.tsx              # Root layout
-│   │   └── globals.css             # Spacing variables & HSL colors
+│   │   │   ├── barcode_service.py  # Barcode fetchers
+│   │   │   ├── category_engine.py  # Taxonomic classifier
+│   │   │   ├── gemini_service.py   # OCR, parsed, explanations & chat
+│   │   │   ├── insights_engine.py  # History analyzer
+│   │   │   ├── normalization_engine.py # Ingredient spelling mapping
+│   │   │   ├── ocr_service.py      # Vision OCR
+│   │   │   └── scoring_service.py  # Deterministic score logic
+│   │   └── main.py                 # FastAPI application main
+│   ├── supabase_setup.sql          # DB setup SQL script
+│   └── requirements.txt            # Python dependencies
 │
 ├── mobile/
-│   ├── app/
-│   │   ├── _layout.tsx             # Universal route wrapper and navigation tabs
-│   │   ├── index.tsx               # Dashboard screen with scan logs & goal preferences
-│   │   ├── scan.tsx                # Expo camera viewfinder & canvas scanner overlay
-│   │   ├── correction.tsx          # Manual text spelling verification layer
-│   │   └── results.tsx             # Score details, swipable alternatives & follow-up chat
-│   ├── services/
-│   │   └── api.ts                  # Axios client hitting FastAPI endpoints
-│   ├── utils/
-│   │   └── scoring.ts              # Local scoring calculations and helper maps
-│   └── package.json                # Expo dependency configuration
+│   ├── app/                        # Thin routing entrypoints
+│   │   ├── _layout.tsx             # Auth listener & route protection
+│   │   ├── index.tsx               # Welcome / Dashboard
+│   │   ├── login.tsx               # Login redirection
+│   │   ├── register.tsx            # Register redirection
+│   │   ├── profile.tsx             # User profile redirection
+│   │   ├── scan.tsx                # Scanner screen redirect
+│   │   ├── correction.tsx          # OCR correction screen redirect
+│   │   └── results.tsx             # Results screen redirect
+│   ├── src/
+│   │   ├── screens/                # Functional Screen Components
+│   │   ├── services/               # API & Supabase clients
+│   │   ├── theme/                  # Theme constants
+│   │   └── utils/                  # Scoring calculations
 │
 └── README.md                       # You are here
 ```
-
-## API Reference
-
-Base URL: `http://localhost:8000/api/v1`
-
-### `POST /scan/extract`
-
-Upload an image to extract ingredient text via Multimodal AI Vision OCR.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `file` | `UploadFile` | Image file (max 10MB) |
-
-**Response:**
-```json
-{
-  "raw_text": "Ingredients: Wheat flour, Sugar, Palm oil...",
-  "low_confidence_words": ["plam", "sger"]
-}
-```
-
-### `POST /scan/analyze`
-
-Submit corrected text for deterministic scoring, trust index computation, and AI explanation.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `corrected_text` | `string` | Corrected OCR text (5–5000 chars) |
-| `product_name` | `string` | Optional name of the product |
-
-**Response:**
-```json
-{
-  "scorecard": {
-    "nova_group": 4,
-    "additive_density": "High",
-    "sugar_load": "High",
-    "sodium_load": "Low",
-    "transparency_index": "Moderate",
-    "protein_quality": "Standard",
-    "fiber_quality": "Standard"
-  },
-  "explanation": "This product represents a processed snacker option. WHO guidelines suggest portion moderation...",
-  "alternative": {
-    "name": "Roasted Spiced Makhana",
-    "recipe": "1. Roast makhana. 2. Toss with ghee...",
-    "prep_time_mins": 6,
-    "approx_cost_inr": 25,
-    "reasoning": {
-      "why_selected": "Recommended because it matches your preferred salty & spicy flavor...",
-      "bullets": [
-        "✓ Direct category match for Chips & Crisps",
-        "✓ Reduces processing from NOVA 4 to NOVA 2",
-        "✓ Under 6 minutes prep time"
-      ]
-    }
-  },
-  "breakdown": [
-    { "reason": "Product is classified as ultra-processed (NOVA 4)", "impact": -15 },
-    { "reason": "Sugar load exceeds 15g per serving", "impact": -15 }
-  ],
-  "confidence": {
-    "ocr_score": 95,
-    "ocr_level": "High",
-    "match_score": 100,
-    "match_level": "High"
-  }
-}
-```
-
----
-
-# Screenshots
-
-EcoSaur's user interface is designed with a premium, custom dark-obsidian aesthetic featuring glowing neon green highlights, clean Google Fonts typography, and smooth layouts.
-
-### Web Dashboard Mockup
-![EcoSaur Web Dashboard](docs/screenshots/web_mockup.png)
-
-### Mobile Companion App Mockup
-![EcoSaur Mobile Application](docs/screenshots/mobile_mockup.png)
 
 ---
 
 # Installation
 
-### Prerequisites
-
-- **Python** 3.11+
-- **Node.js** 18+
-- **AI API Key** - Get one from [Google AI Studio](https://aistudio.google.com/apikey)
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/StarDeep18/EcoSaur.git
-cd EcoSaur
-```
+### 1. Database Setup (Supabase)
+1. Create a project on [Supabase](https://supabase.com/).
+2. Navigate to SQL Editor and execute the query contents from [supabase_setup.sql](file:///c:/Users/Deepak%20S/OneDrive/Desktop/EcoSaur/backend/supabase_setup.sql) to initialize tables and auth triggers.
 
 ### 2. Backend Setup
-
 ```bash
 cd backend
-
-# Create virtual environment
 python -m venv venv
-
-# Activate (Windows)
-venv\Scripts\activate
-# Activate (macOS/Linux)
-source venv/bin/activate
-
-# Install dependencies
+source venv/bin/activate # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
-
 Create a `.env` file in the `backend/` directory:
-
 ```env
-ECOSAUR_AI_API_KEY=your_ai_api_key_here
+GEMINI_API_KEY=your_gemini_api_key
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_JWT_SECRET=your_supabase_jwt_secret
+DATABASE_URL=your_direct_supabase_postgresql_connection_string
 ```
-
-Start the backend server:
-
+Start the server:
 ```bash
-uvicorn app.main:app --reload --port 8000
+uvicorn src.main:app --reload --port 8000
 ```
 
-The database tables will be initialized, seeded with taxonomy nodes, and legacy TinyDB history will be auto-migrated dynamically at startup. API docs will be available at `http://localhost:8000/docs`.
-
-### 3. Frontend Setup
-
-```bash
-cd ../frontend
-
-# Install dependencies
-npm install
-
-# Create .env.local
-echo "NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1" > .env.local
-
-# Start dev server
-npm run dev
-```
-
-The app will be available at `http://localhost:3000`.
-
-### 4. Mobile Setup (React Native / Expo Companion)
-
-Ensure you have the Expo Go app installed on your physical device if you wish to run it there.
-
+### 3. Mobile Setup
 ```bash
 cd ../mobile
-
-# Install dependencies
 npm install
-
-# Start the Expo development server
+```
+Create a `.env` file in the `mobile/` directory:
+```env
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+EXPO_PUBLIC_BACKEND_URL=http://localhost:8000/api/v1
+```
+Start Expo development:
+```bash
 npm run start
 ```
-
-Press `a` for Android Emulator, `i` for iOS Simulator, or scan the QR code using the Expo Go application on iOS/Android to run it on your physical device.
-
----
-
-# Future Improvements
-
-### 🚀 Planned Features & Releases
-
-- **📱 App Store Publishing:** Streamlined publishing pipeline for iOS App Store and Android Google Play Store.
-- **🔐 User Authentication:** Secure sign-in using OAuth provider integrations (Google, Apple, etc.) to persist scan history across web and mobile.
-- **📊 Brand Comparisons:** Interactive charts to compare multiple commercial snack brands side-by-side.
-- **🏆 Gamification Elements:** Streaks, badges, and collaborative community health goals.
-
----
-
-## Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## License
-
-This project is open source. See individual dependency licenses for third-party components.
 
 ---
 
 ## Disclaimer
 
 > EcoSaur does **not** provide medical advice. It is an educational tool designed to help users understand food ingredient labels and make informed choices. Always consult a healthcare professional for dietary or medical guidance.
-
----
-
-<p align="center">
-  <strong>🦕 EcoSaur - Guide users, don't scare them.</strong>
-</p>

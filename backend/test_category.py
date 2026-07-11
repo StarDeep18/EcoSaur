@@ -5,10 +5,10 @@ import sys
 # Set Python path to backend
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.services import category_engine
-from app.models.schemas import ParsedFoodData
-from app.db.database import engine, Base, SessionLocal
-from app.db.migrate import seed_database
+from src.services import category_engine
+from src.models.schemas import ParsedFoodData
+from src.config.database import engine, Base, SessionLocal
+from src.config.migrate import seed_database
 
 def run_tests():
     print("==============================================")

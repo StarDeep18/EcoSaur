@@ -4,8 +4,8 @@ import sys
 # Set Python path to backend
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.services import scoring
-from app.models.schemas import ParsedFoodData
+from src.services import scoring_service as scoring
+from src.models.schemas import ParsedFoodData
 
 def run_personalization_scorecard_test():
     print("==================================================")
@@ -32,7 +32,7 @@ def run_personalization_scorecard_test():
     modes = ["General", "Diabetic Friendly", "Child Friendly", "Vegetarian", "Vegan"]
     
     for mode in modes:
-        scorecard, breakdown, adj, details = scoring.calculate_score(parsed_data, health_mode=mode)
+        scorecard, breakdown, adj, details, exp = scoring.calculate_score(parsed_data, health_mode=mode)
         print(f"[{mode} Mode]")
         print(f"  -> NOVA Processing Group: {scorecard.nova_group} (1=Unprocessed, 4=Ultra-Processed)")
         print(f"  -> Additive Density: {scorecard.additive_density} | Sugar Load: {scorecard.sugar_load} | Sodium Load: {scorecard.sodium_load}")

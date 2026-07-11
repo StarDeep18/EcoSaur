@@ -1,7 +1,7 @@
 """Quick test to check which Gemini models are available under the current API key quota."""
 from google import genai
 from google.genai.errors import ClientError
-from app.core.config import settings
+from src.config.config import settings
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
