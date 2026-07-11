@@ -80,6 +80,52 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const handleDeleteHistory = () => {
+    Alert.alert(
+      'Clear Scan History',
+      'Are you sure you want to permanently clear all your scan logs? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear History',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.deleteHistory();
+              Alert.alert('History Cleared', 'Your scan logs have been purged.');
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'Failed to clear history.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      '⚠️ Delete Account',
+      'CRITICAL: This will permanently delete your user profile, scan histories, preferences, and details from EcoSaur. This action is irreversible.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Permanently',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.deleteAccount();
+              await supabase.auth.signOut();
+              router.replace('/');
+              Alert.alert('Account Deleted', 'Your profile and logs have been wiped from the database.');
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'Failed to delete account data.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: theme.bg, justifyContent: 'center', alignItems: 'center' }}>
@@ -154,6 +200,55 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           );
         })}
+      </View>
+
+      {/* Privacy GDPR Section */}
+      <View style={{
+        backgroundColor: theme.card,
+        borderWidth: 1,
+        borderColor: theme.border,
+        borderRadius: 20,
+        padding: 20,
+        marginBottom: 24,
+        gap: 12
+      }}>
+        <Text style={{ fontSize: 12, fontWeight: '700', color: theme.text, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          🛡️ Privacy & Account Management
+        </Text>
+        
+        <TouchableOpacity
+          onPress={handleDeleteHistory}
+          style={{
+            backgroundColor: theme.bg,
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: 14,
+            height: 44,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ color: theme.text, fontWeight: '600', fontSize: 13 }}>
+            🗑️ Clear Scan History
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleDeleteAccount}
+          style={{
+            backgroundColor: 'rgba(255, 69, 58, 0.05)',
+            borderWidth: 1,
+            borderColor: 'rgba(255, 69, 58, 0.2)',
+            borderRadius: 14,
+            height: 44,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ color: theme.error, fontWeight: '700', fontSize: 13 }}>
+            ⚠️ Permanently Delete Account
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Logout Action */}

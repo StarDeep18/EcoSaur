@@ -107,6 +107,7 @@ class Scan(Base):
     alternative_cost = Column(Integer, nullable=True)
     
     breakdown_json = Column(Text, nullable=False) # Serialized list of dictionaries
+    image_url = Column(Text, nullable=True)
     
     # Trust Metric Confidences
     confidence_ocr = Column(Float, default=1.0)

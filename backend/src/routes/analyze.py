@@ -159,6 +159,7 @@ async def analyze_food(
             alternative=alternative_dict,
             breakdown=breakdown_list,
             user_id=user_id,
+            image_url=request.image_url,
             confidence_ocr=ocr_score / 100.0,
             confidence_match=match_score / 100.0,
             confidence_analysis=0.95,

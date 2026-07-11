@@ -41,3 +41,23 @@ async def update_user_preferences(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update user preferences: {str(e)}"
         )
+
+@router.delete("/user/account")
+async def delete_account(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Deletes the authenticated user's profile and cascade deletes history.
+    """
+    try:
+        from src.models.database_models import User
+        db.query(User).filter(User.id == current_user["id"]).delete()
+        db.commit()
+        return {"status": "success", "message": "User account and history deleted successfully."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete account data: {str(e)}"
+        )

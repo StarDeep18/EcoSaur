@@ -27,6 +27,7 @@ class AnalysisRequest(BaseModel):
     corrected_text: str = Field(..., min_length=5, max_length=5000, description="Corrected OCR text must be between 5 and 5000 characters.")
     product_name: Optional[str] = Field(None, description="Optional name/type of the product, e.g. biscuit, potato chips, etc.")
     user_id: Optional[str] = Field("default", description="Optional user identification for custom preference routing.")
+    image_url: Optional[str] = Field(None, description="Optional public URL of the uploaded label image.")
 
 class ParsedFoodData(BaseModel):
     ingredients: List[str]

@@ -52,6 +52,7 @@ create table public.scan_history (
     confidence_match double precision default 1.0,
     confidence_analysis double precision default 1.0,
     confidence_rec double precision default 1.0,
+    image_url text,
     date timestamp with time zone default timezone('utc'::text, now()) not null,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -87,3 +88,19 @@ alter table public.api_usage enable row level security;
 create policy "Users can view own api usage" 
     on public.api_usage for select 
     using (auth.uid() = user_id);
+
+
+-- 4. Create Public Scans Storage Bucket (Requires Storage Schema Permissions)
+-- Note: You can also create this bucket manually in the Supabase Dashboard.
+insert into storage.buckets (id, name, public) 
+values ('scans', 'scans', true)
+on conflict do nothing;
+
+create policy "Public Access Scans" 
+    on storage.objects for select 
+    using (bucket_id = 'scans');
+
+create policy "Authenticated User Upload Scans" 
+    on storage.objects for insert 
+    with check (bucket_id = 'scans' and auth.role() = 'authenticated');
+

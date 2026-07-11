@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, useColorSc
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { api } from '../services/api';
+import { supabase } from '../services/supabase';
 import { THEME } from '../theme';
 
 export default function ScanScreen() {
@@ -71,12 +72,40 @@ export default function ScanScreen() {
     if (cameraRef.current && !loading) {
       Vibration.vibrate(15);
       setLoading(true);
-      setLoadingStatus('📷 Capturing clear label...');
+      setLoadingStatus('📷 Capturing label...');
       try {
         const photo = await cameraRef.current.takePictureAsync({
           quality: 0.85,
           skipProcessing: false,
         });
+
+        // Upload label photo to Supabase Storage bucket
+        setLoadingStatus('☁️ Uploading label photo to storage...');
+        let imageUrl = '';
+        try {
+          const response = await fetch(photo.uri);
+          const blob = await response.blob();
+          const { data: sessionData } = await supabase.auth.getSession();
+          const userId = sessionData?.session?.user?.id || 'anon';
+          const filename = photo.uri.split('/').pop() || 'label.jpg';
+          const storagePath = `${userId}/${Date.now()}_${filename}`;
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('scans')
+            .upload(storagePath, blob, {
+              contentType: 'image/jpeg',
+              upsert: true,
+            });
+
+          if (uploadError) {
+            console.warn('Supabase storage upload failed:', uploadError);
+          } else if (uploadData) {
+            const { data: urlData } = supabase.storage.from('scans').getPublicUrl(uploadData.path);
+            imageUrl = urlData.publicUrl;
+          }
+        } catch (storageErr) {
+          console.warn('Failed storage upload pipeline:', storageErr);
+        }
 
         setLoadingStatus('⚙️ OCR extraction running...');
         // Call OCR extract endpoint
@@ -90,6 +119,7 @@ export default function ScanScreen() {
             rawText: ocrResult.raw_text,
             lowConfidenceWords: JSON.stringify(ocrResult.low_confidence_words || []),
             productName: '',
+            imageUrl: imageUrl || '',
           }
         });
       } catch (err: any) {

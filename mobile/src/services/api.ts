@@ -56,7 +56,7 @@ export const api = {
     return data;
   },
 
-  async analyzeFood(correctedText: string, productName?: string, userId: string = 'default'): Promise<any> {
+  async analyzeFood(correctedText: string, productName?: string, userId: string = 'default', imageUrl?: string): Promise<any> {
     const cacheKey = correctedText.trim();
     if (analysisCache[cacheKey]) {
       return analysisCache[cacheKey];
@@ -70,6 +70,7 @@ export const api = {
         corrected_text: correctedText,
         product_name: productName || undefined,
         user_id: userId,
+        image_url: imageUrl || undefined,
       }),
     });
 
@@ -225,6 +226,38 @@ export const api = {
     const data = await res.json();
     if (!res.ok) {
       throw new Error(data.detail || 'Chat query failed');
+    }
+    return data;
+  },
+
+  /**
+   * Deletes the user profile and all cascade linked histories from public tables.
+   */
+  async deleteAccount(): Promise<any> {
+    const headers = await getHeaders();
+    const res = await fetch(`${BASE_URL}/user/account`, {
+      method: 'DELETE',
+      headers: headers,
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.detail || 'Failed to delete account data.');
+    }
+    return data;
+  },
+
+  /**
+   * Purges the authenticated user's entire scan logs history from database.
+   */
+  async deleteHistory(): Promise<any> {
+    const headers = await getHeaders();
+    const res = await fetch(`${BASE_URL}/scan/history`, {
+      method: 'DELETE',
+      headers: headers,
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.detail || 'Failed to clear scan history.');
     }
     return data;
   },

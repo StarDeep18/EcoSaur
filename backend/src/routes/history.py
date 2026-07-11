@@ -36,6 +36,7 @@ async def get_history(
                     "approx_cost_inr": s.alternative_cost or 40
                 },
                 "breakdown": json.loads(s.breakdown_json) if s.breakdown_json else [],
+                "image_url": s.image_url,
                 "confidence": {
                     "ocr_score": int((s.confidence_ocr or 1.0) * 100),
                     "ocr_level": "High" if (s.confidence_ocr or 1.0) >= 0.9 else "Moderate" if (s.confidence_ocr or 1.0) >= 0.7 else "Low",
@@ -86,4 +87,24 @@ async def get_history_insights(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate history insights: {str(e)}"
+        )
+
+@router.delete("/scan/history")
+async def delete_history(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Deletes the authenticated user's scan history records.
+    """
+    try:
+        from src.models.database_models import Scan
+        db.query(Scan).filter(Scan.user_id == current_user["id"]).delete()
+        db.commit()
+        return {"status": "success", "message": "Scan history cleared successfully."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clear scan history: {str(e)}"
         )

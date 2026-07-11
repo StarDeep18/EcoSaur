@@ -274,17 +274,60 @@ export default function WelcomeScreen() {
           ) : history.length === 0 ? (
             <View style={{
               backgroundColor: theme.card,
-              borderRadius: 20,
-              padding: 30,
-              alignItems: 'center',
+              borderRadius: 24,
+              padding: 24,
               borderWidth: 1,
               borderColor: theme.border,
             }}>
-              <Text style={{ fontSize: 32, marginBottom: 8 }}>🥗</Text>
-              <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>No scans logged yet</Text>
-              <Text style={{ color: theme.muted, fontSize: 11, textAlign: 'center', marginTop: 4, paddingHorizontal: 20 }}>
-                Once you analyze a product packaging label, historical scorecards appear here.
-              </Text>
+              <View style={{ alignItems: 'center', marginBottom: 20 }}>
+                <Text style={{ fontSize: 40, marginBottom: 8 }}>🥗</Text>
+                <Text style={{ color: theme.text, fontWeight: '800', fontSize: 15 }}>No scans logged yet</Text>
+                <Text style={{ color: theme.muted, fontSize: 12, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
+                  Once you analyze product labels, your scan logs and diagnostic insights will appear here.
+                </Text>
+              </View>
+
+              <View style={{ borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 16, gap: 14 }}>
+                <Text style={{ fontSize: 11, fontWeight: '800', color: theme.primary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+                  How to get started
+                </Text>
+
+                <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
+                  <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: theme.accentSoft, alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
+                    <Text style={{ fontSize: 14 }}>📷</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: theme.text, fontSize: 13, fontWeight: '700' }}>1. Capture Ingredients Label</Text>
+                    <Text style={{ color: theme.muted, fontSize: 11, marginTop: 2, lineHeight: 14 }}>
+                      Tap the scanner button and position the camera over the back-of-pack ingredients table.
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
+                  <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: theme.accentSoft, alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
+                    <Text style={{ fontSize: 14 }}>✏️</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: theme.text, fontSize: 13, fontWeight: '700' }}>2. Review & Spellcheck</Text>
+                    <Text style={{ color: theme.muted, fontSize: 11, marginTop: 2, lineHeight: 14 }}>
+                      Correct any blurry or misspelled words with spelling suggestions in the visual feedback box.
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
+                  <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: theme.accentSoft, alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
+                    <Text style={{ fontSize: 14 }}>🌿</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: theme.text, fontSize: 13, fontWeight: '700' }}>3. Browse Swaps & Insights</Text>
+                    <Text style={{ color: theme.muted, fontSize: 11, marginTop: 2, lineHeight: 14 }}>
+                      Review chemical alerts and swipe to find premium regional Indian food alternatives.
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </View>
           ) : (
             <View style={{ gap: 10 }}>

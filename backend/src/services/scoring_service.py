@@ -95,7 +95,7 @@ def calculate_score(parsed_data: ParsedFoodData, health_mode: str = "General") -
             sodium_load = "Moderate"
     else:
         # Fallback on salt presence
-        salt_count = sum(1 for det in ingredient_details if "salt" in det.name or "sodium" in det.name)
+        salt_count = sum(1 for det in ingredient_details if "salt" in det.name or ("sodium" in det.name and not det.is_preservative))
         if salt_count > 1:
             sodium_load = "High"
         elif salt_count == 1:
@@ -136,7 +136,7 @@ def calculate_score(parsed_data: ParsedFoodData, health_mode: str = "General") -
     # 3. Deterministic scoring out of 100
     score = 100
 
-    # Added Sugar Deduction (-15)
+    # Added Sugar Deduction (-15 for High, -5 for Moderate)
     if sugar_load == "High":
         score -= 15
         negatives.append("Contains added sugar (-15)")
@@ -148,13 +148,58 @@ def calculate_score(parsed_data: ParsedFoodData, health_mode: str = "General") -
 
     # Trans Fat Deduction (-30)
     has_trans_fat = any(
-        "hydrogenated" in name.lower() or "trans fat" in name.lower() or "palmolein" in name.lower()
+        "hydrogenated" in name.lower() or "trans fat" in name.lower()
         for name in ingredients
     )
     if has_trans_fat:
         score -= 30
         negatives.append("Contains industrial trans fats / hydrogenated fats (-30)")
         breakdown.append(ScoreBreakdown(reason="Contains hydrogenated or trans fat ingredients linked to cardiovascular risks", impact=-30))
+
+    # Palm Oil Deduction (-10)
+    has_palm_oil = any(
+        "palm" in name.lower() or "palmolein" in name.lower()
+        for name in ingredients
+    )
+    if has_palm_oil:
+        score -= 10
+        negatives.append("Contains palm oil / palmolein (-10)")
+        breakdown.append(ScoreBreakdown(reason="Contains palm oil or palmolein, which are high in saturated fats", impact=-10))
+
+    # Sodium Deduction (-15 for High, -5 for Moderate)
+    if sodium_load == "High":
+        score -= 15
+        negatives.append("High sodium level (-15)")
+        breakdown.append(ScoreBreakdown(reason="Sodium level is high, which exceeds standard portion recommendations", impact=-15))
+    elif sodium_load == "Moderate":
+        score -= 5
+        negatives.append("Moderate sodium level (-5)")
+        breakdown.append(ScoreBreakdown(reason="Sodium level is moderate; portion monitoring is advised", impact=-5))
+
+    # Preservative Deduction (-5 for single, -10 for multiple)
+    preservatives_count = sum(1 for det in ingredient_details if det.is_preservative)
+    if preservatives_count >= 2:
+        score -= 10
+        negatives.append("Contains multiple preservatives (-10)")
+        breakdown.append(ScoreBreakdown(reason="Contains multiple chemical preservatives used for extended shelf life", impact=-10))
+    elif preservatives_count == 1:
+        score -= 5
+        negatives.append("Contains preservatives (-5)")
+        breakdown.append(ScoreBreakdown(reason="Contains a chemical preservative to inhibit bacterial growth", impact=-5))
+
+    # Artificial Color Deduction (-5 each)
+    artificial_colors = [det.name for det in ingredient_details if det.category == "Color"]
+    if artificial_colors:
+        color_deduction = len(artificial_colors) * 5
+        score -= color_deduction
+        negatives.append(f"Contains artificial colors: {', '.join(artificial_colors)} (-{color_deduction})")
+        breakdown.append(ScoreBreakdown(reason=f"Contains synthetic food dyes: {', '.join(artificial_colors)}", impact=-color_deduction))
+
+    # Ingredient Count Penalty (-5 if >15)
+    if len(ingredients) > 15:
+        score -= 5
+        negatives.append("Long ingredient list (>15) (-5)")
+        breakdown.append(ScoreBreakdown(reason="Long ingredient list, indicating highly processed nature", impact=-5))
 
     # High Protein Boost (+10)
     if protein_quality == "High Source":
@@ -167,6 +212,17 @@ def calculate_score(parsed_data: ParsedFoodData, health_mode: str = "General") -
         score += 10
         positives.append("High in fiber (+10)")
         breakdown.append(ScoreBreakdown(reason="Includes complex whole grains contributing to fiber intake", impact=10))
+
+    # Whole Ingredient Bonus (+10)
+    whole_ingredients_keywords = ["whole wheat", "oats", "millet", "ragi", "quinoa", "brown rice", "atta", "peanuts", "almonds", "nuts", "seeds", "makhana", "fresh milk", "fruit", "vegetable"]
+    has_whole_ingredients = any(
+        any(keyword in name.lower() for keyword in whole_ingredients_keywords) and "oil" not in name.lower() and "fat" not in name.lower()
+        for name in ingredients
+    )
+    if has_whole_ingredients:
+        score += 10
+        positives.append("Contains whole ingredients (+10)")
+        breakdown.append(ScoreBreakdown(reason="Contains minimally processed whole food ingredients", impact=10))
 
     # Boundary check (0-100)
     score = max(0, min(100, score))

@@ -17,7 +17,7 @@ Currently, the workspace consists of:
 ## 2. Problems & Security Issues Found
 
 *   **Hardcoded API Keys**:
-    *   The Gemini API Key (`placeholder_gemini_key`) is hardcoded directly inside `backend/app/core/config.py`.
+    *   The Gemini API Key is hardcoded directly inside `backend/app/core/config.py`.
     *   The backend's `.env` contains the same hardcoded key.
 *   **Insecure API Hostnames in Mobile**:
     *   The base URL in `mobile/services/api.ts` is hardcoded to a local private IP address (`http://10.136.73.160:8000/api/v1`), which will break across different networks and when deployed.

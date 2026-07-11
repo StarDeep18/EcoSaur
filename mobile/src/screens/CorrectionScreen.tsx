@@ -72,7 +72,12 @@ export default function CorrectionScreen() {
         }
       }
 
-      const result = await api.analyzeFood(rawText, productName);
+      const result = await api.analyzeFood(
+        rawText, 
+        productName, 
+        'default', 
+        (params.imageUrl as string) || undefined
+      );
       
       // Store in global in-memory session cache for instant repeat barcode scanning
       if (params.barcode) {
