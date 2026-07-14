@@ -307,17 +307,18 @@ export default function ScanScreen() {
 // Support newer CameraView standard cleanly
 function CameraRefWrapper({ cameraRef, onBarcodeScanned, children }: any) {
   return (
-    <CameraView
-      style={StyleSheet.absoluteFill}
-      facing="back"
-      barcodeScannerSettings={{
-        barcodeTypes: ["qr", "ean13", "ean8", "upc_a", "upc_e"],
-      }}
-      onBarcodeScanned={onBarcodeScanned}
-      ref={cameraRef}
-    >
+    <>
+      <CameraView
+        style={StyleSheet.absoluteFill}
+        facing="back"
+        barcodeScannerSettings={{
+          barcodeTypes: ["qr", "ean13", "ean8", "upc_a", "upc_e"],
+        }}
+        onBarcodeScanned={onBarcodeScanned}
+        ref={cameraRef}
+      />
       {children}
-    </CameraView>
+    </>
   );
 }
 
